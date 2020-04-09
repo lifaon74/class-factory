@@ -1,9 +1,15 @@
-import { SetInstanceOf } from './instance-of';
-import { Constructor } from './types/class-types';
+
+/***** MAKE *****/
+
+import { AbstractClass, Constructor } from './types/class-types';
 import {
   IMakeFactoryOptions, TMakeFactoryClass, TMakeFactoryCreateSuperClass, TMakeFactoryFactories
 } from './types/factory-types';
-
+import { SetInstanceOf } from './instance-of';
+import { BaseClass } from './base-class';
+import {
+  BindDescriptorOld, CopyClass, EXCLUDED_PROPERTY_NAMES, GetOwnPropertyKeys, GetPropertyDescriptors, SetClassName
+} from './helpers';
 
 /**
  * Creates a new class from :
@@ -26,7 +32,7 @@ export function MakeFactory<TChildClass extends Constructor, TSuperClasses exten
   const _class: TMakeFactoryClass<TChildClass, TSuperClasses, TBase> = create(_superClass) as unknown as TMakeFactoryClass<TChildClass, TSuperClasses, TBase>;
 
   Object.defineProperty(_class, IS_FACTORY_CLASS, {
-    value: null,
+    value: true,
   });
 
   if (typeof options.name === 'string') {
@@ -41,7 +47,7 @@ export function MakeFactory<TChildClass extends Constructor, TSuperClasses exten
   if (Array.isArray(options.waterMarks)) {
     for (let i = 0, l = options.waterMarks.length; i < l; i++) {
       Object.defineProperty(_class, options.waterMarks[i], {
-        value: null,
+        value: true,
       });
     }
   }
@@ -54,29 +60,117 @@ export function MakeFactory<TChildClass extends Constructor, TSuperClasses exten
 }
 
 
+/***** MAKE FROM EXISTING CLASS *****/
+
 /**
- * Returns true if class has the specified watermark
+ * Tries to convert (does the best) a class to a class factory.
  */
-export function HasFactoryWaterMark(_class: (new(...args: any[]) => any), waterMark: symbol, direct: boolean = true): boolean {
-  return direct
-    ? _class.hasOwnProperty(waterMark)
-    : (waterMark in _class);
+export function ClassToFactory<TSource extends Constructor>(source: TSource) {
+  return function<TBase extends Constructor>(superClass: TBase, mode: 'function' | 'class' | 'auto' = 'auto'): TMakeFactoryClass<TSource, [], TBase> {
+    let _class;
+    if (
+      (superClass === (Object as any))
+      || (superClass === (BaseClass as any))
+    ) {
+      _class = class extends (source as any) {
+        constructor(args: any[]) {
+          super(...args);
+        }
+      };
+      SetInstanceOf(superClass, _class);
+    } else {
+      _class = class extends superClass {
+        constructor(...args: any[]) {
+          const ownArgs: ConstructorParameters<TSource> = args[0];
+          super(...args.slice(1));
+
+          let _this: any;
+          switch (mode) {
+            case 'auto':
+              try {
+                // try to construct the class through a function call
+                _this = source.apply(this, ownArgs);
+                if (_this === void 0) {
+                  _this = this;
+                }
+                mode = 'function';
+              } catch (e) {
+                // construct the class though Reflect
+                _this = Reflect.construct(source, ownArgs);
+                mode = 'class';
+              }
+              break;
+            case 'function':
+              _this = source.apply(this, ownArgs);
+              if (_this === void 0) {
+                _this = this;
+              }
+              break;
+            case 'class':
+              _this = Reflect.construct(source, ownArgs);
+              break;
+          }
+
+
+          if (this !== _this) { // a super class may return a different this
+            // 1) reflect _this.constructor.prototype to this
+            const iterator: IterableIterator<[PropertyKey, PropertyDescriptor, Object]> = GetPropertyDescriptors(Object.getPrototypeOf(_this));
+            let result: IteratorResult<[PropertyKey, PropertyDescriptor, Object]>;
+            while (!(result = iterator.next()).done) {
+              const key: PropertyKey = result.value[0];
+              if (!EXCLUDED_PROPERTY_NAMES.has(key)) {
+                Object.defineProperty(this, key, BindDescriptorOld(_this, key, result.value[1]));
+              }
+            }
+
+            // 2) reflect all own properties of _this to this
+            const keys: PropertyKey[] = GetOwnPropertyKeys(_this);
+            for (const key of keys) {
+              if (!EXCLUDED_PROPERTY_NAMES.has(key)) {
+                if (key in this) {
+                  console.warn(`Crossing properties !`);
+                }
+                Object.defineProperty(this, key, BindDescriptorOld(_this, key, Object.getOwnPropertyDescriptor(_this, key) as PropertyDescriptor));
+              }
+            }
+
+            // prevents new properties to be added on _this
+            Object.seal(_this);
+          }
+        }
+      };
+
+      CopyClass(source, _class);
+    }
+
+    SetClassName(_class, source.name);
+
+    return _class as any;
+  };
+}
+
+
+/***** WATERMARK *****/
+
+/**
+ * Returns true if '_class' has the specified watermark
+ */
+export function HasFactoryWaterMark(_class: AbstractClass, waterMark: symbol, direct: boolean = true): boolean {
+  return (_class[waterMark] === true) && (direct ? _class.hasOwnProperty(waterMark) : true);
 }
 
 
 const IS_FACTORY_CLASS = Symbol('is-factory-class');
 
+
 /**
- * Returns true if class has been build with MakeFactory
+ * Returns true if '_class' has been build with MakeFactory
  */
-export function IsFactoryClass(_class: (new(...args: any[]) => any), direct: boolean = true): boolean {
-  // return (IS_FACTORY_CLASS in _class);
-  return direct
-    ? _class.hasOwnProperty(IS_FACTORY_CLASS)
-    : (IS_FACTORY_CLASS in _class);
+export function IsFactoryClass(_class: AbstractClass, direct: boolean = true): boolean {
+  return (_class[IS_FACTORY_CLASS] === true) && (direct ? _class.hasOwnProperty(IS_FACTORY_CLASS) : true);
 }
 
-
+/***** WATERMARK *****/
 
 /**
  * Replace incoming args for the super class by superArgs in the context of a Factory class
@@ -94,8 +188,6 @@ export function SetSuperArgsForFactoryClass(args: any[], superArgs: any[]): any[
 
 /**
  * Same as previous but class is a standard class instead
- * @param args
- * @param superArgs
  */
 export function SetSuperArgsForStandardClass(args: any[], superArgs: any[]): any[] {
   for (let i = 0, l = superArgs.length; i < l; i++) {
@@ -111,5 +203,4 @@ export function GetSetSuperArgsFunction(isFactoryClass: boolean): TSetSuperArgs 
     ? SetSuperArgsForFactoryClass
     : SetSuperArgsForStandardClass;
 }
-
 
