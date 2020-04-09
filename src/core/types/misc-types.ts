@@ -16,6 +16,9 @@ export type TupleArray<TTuple extends any[], TArray> = Array<TArray> & TTuple;
 // removes from T (object) the properties K (union)
 export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
 
+// converts the properties of T (object) as writable (removes readonly)
+export type Writeable<T> = { -readonly [P in keyof T]: T[P] };
+
 // removes from T (object) the properties K (tuple)
 export type ExcludeProperties<T, K extends (keyof T)[]> = Pick<T, Exclude<keyof T, TupleTypes<K>>>;
 
