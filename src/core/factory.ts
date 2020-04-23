@@ -170,7 +170,109 @@ export function IsFactoryClass(_class: AbstractClass, direct: boolean = true): b
   return (_class[IS_FACTORY_CLASS] === true) && (direct ? _class.hasOwnProperty(IS_FACTORY_CLASS) : true);
 }
 
-/***** WATERMARK *****/
+
+/***** SUPER ARGUMENTS *****/
+
+export interface ISearchClassResult {
+  index: number;
+  ctor: Constructor;
+}
+
+/**
+ * Searches a super class, using a filter function
+ */
+export function SearchSuperClass<TClass extends Constructor>(
+  _class: Constructor | null,
+  filter: (_class: Constructor) => boolean
+): ISearchClassResult | null {
+  let index: number = 0;
+  while (_class !== null) {
+    if (filter(_class)) {
+      return {
+        index,
+        ctor: _class as TClass
+      };
+    } else {
+      index++;
+      _class = Object.getPrototypeOf(_class);
+    }
+  }
+  return null;
+}
+
+/**
+ * Extracts own factory arguments
+ */
+export function OwnArguments<TArguments extends any[]>(args: any[]): TArguments {
+  return args[0];
+}
+
+/**
+ * Extracts super classes factory arguments
+ */
+export function SuperArguments(args: any[]): any[] {
+  return args.slice(1);
+}
+
+export type TOverrideArgumentsFunction<TArguments extends any[]> = (oldArguments: TArguments) => TArguments;
+export type TOverrideSuperArgumentsFunction<TArguments extends any[]> = (args: any[], getNewArguments: TOverrideArgumentsFunction<TArguments>) => any[];
+
+/**
+ * Builds a function used to override some factory arguments
+ */
+export function GenerateOverrideSuperArgumentsFunction<TArguments extends any[]>(
+  _class: Constructor,
+  filter: (_class: Constructor) => boolean,
+): TOverrideSuperArgumentsFunction<TArguments> {
+  const result: ISearchClassResult | null = SearchSuperClass(_class, filter);
+  if (result === null) {
+    throw new Error(`Failed to find super class of the class ${ _class.name }`);
+  } else {
+    const index: number = result.index;
+    if (IsFactoryClass(result.ctor)) {
+      return (args: any[], getNewArguments: (oldArguments: TArguments) => TArguments) => {
+        if (Array.isArray(args[index])) {
+          return args
+            .slice(0, index)
+            .concat([getNewArguments(args[index])])
+            .concat(args.slice(index + 1));
+        } else {
+          throw new TypeError(`Expected array as argument[${ index }]`);
+        }
+      };
+    } else {
+      return (args: any[], getNewArguments: (oldArguments: TArguments) => TArguments) => {
+        return args
+          .slice(0, index)
+          .concat(getNewArguments(args.slice(index) as TArguments));
+      };
+    }
+  }
+}
+
+export type TMixedOverrideSuperArgumentsFunction<TOverrideArgumentsFunctions extends TOverrideArgumentsFunction<any[]>[]> = (args: any[], ...getNewArgumentsFunctions: TOverrideArgumentsFunctions) => any[];
+
+export type TOverrideSuperArgumentsFunctionTupleToArgumentsTuple<TFunctions extends TOverrideSuperArgumentsFunction<any[]>[]> = {
+  [TKey in keyof TFunctions]: TFunctions[TKey] extends (args: any[], getNewArguments: infer TOverrideArgumentsFunction) => any[]
+    ? TOverrideArgumentsFunction
+    : never
+};
+
+export function MixOverrideSuperArgumentsFunction<TFunctions extends TOverrideSuperArgumentsFunction<any[]>[]>(
+  ...functions: TFunctions
+): TMixedOverrideSuperArgumentsFunction<TOverrideSuperArgumentsFunctionTupleToArgumentsTuple<TFunctions>> {
+  return (args: any[], ...getNewArgumentsFunctions: TOverrideSuperArgumentsFunctionTupleToArgumentsTuple<TFunctions>) => {
+    for (let i = 0, l = functions.length; i < l; i++) {
+      args = functions[i](args, getNewArgumentsFunctions[i]);
+    }
+    return args;
+  };
+}
+
+
+
+
+/* LEGACY */
 
 /**
  * Replace incoming args for the super class by superArgs in the context of a Factory class
