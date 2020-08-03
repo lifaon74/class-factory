@@ -1,6 +1,7 @@
+import { debugClassGenerator } from './generator/debug';
 
-export function debugFactory() {
-  // TODO
+export async function debugFactory() {
+  await debugClassGenerator();
 }
 
 export function start(mainCallBack: () => (Promise<any> | any)) {
