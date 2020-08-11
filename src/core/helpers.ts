@@ -235,4 +235,7 @@ export function BindDescriptorOld(instance: object, key: PropertyKey, descriptor
 }
 
 
+export function ObjectHasOwnProperty<GObj extends any, GPropertyKey extends PropertyKey>(obj: GObj, propertyKey: GPropertyKey): obj is (GObj & { [GKey in GPropertyKey]: any }) {
+  return Object.prototype.hasOwnProperty.call(obj, propertyKey);
+}
 

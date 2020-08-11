@@ -1,7 +1,9 @@
 import { debugClassGenerator } from './generator/debug';
+import { debugTrait } from './debug/debug-traits';
 
 export async function debugFactory() {
-  await debugClassGenerator();
+  // await debugClassGenerator();
+  await debugTrait();
 }
 
 export function start(mainCallBack: () => (Promise<any> | any)) {

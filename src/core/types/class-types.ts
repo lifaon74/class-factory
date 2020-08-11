@@ -32,3 +32,9 @@ export type ConstructorsParameters<T extends (new (...args: any[]) => any)[]> = 
   [P in keyof T]: T[P] extends new (...args: infer P) => any ? P : never;
 };
 
+export type TMakeTypedConstructor<GTypedInstance, Args extends any[], GConstructor extends Constructor<GTypedInstance, Args>> =
+  ExcludeConstructor<GConstructor>
+  & {
+  new(...args: Args): GTypedInstance;
+}
+
