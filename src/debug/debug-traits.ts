@@ -4,6 +4,7 @@ import {
   ImplementsTrait, ImplementsTraits, SuperTraits, TInferClassTrait, TMakeSuperTrait, TraitFromClass, TraitsFromClasses
 } from '../core/traits';
 import { BaseClass } from '../core/base-class';
+import { GetPropertyDescriptors, GetSafePropertyDescriptors } from '../core/helpers';
 
 
 
@@ -159,10 +160,35 @@ export async function debugTrait3() {
   console.log(MyTrait.prototype);
 }
 
+export async function debugTrait4() {
 
+  abstract class TraitA {
+    methodA() {
+      return 'a';
+    }
+  }
+
+  abstract class TraitB extends TraitA {
+    methodB() {
+      return 'b';
+    }
+  }
+
+  class A extends SuperTraits(TraitsFromClasses(TraitB)) {
+
+  }
+
+  // console.log(Array.from(GetSafePropertyDescriptors(TraitB.prototype)));
+  const a = new A();
+
+  console.log('a', a);
+  console.log('ImplementsTrait TraitB', ImplementsTrait(a, TraitFromClass(TraitB)));
+  console.log('ImplementsTrait TraitA', ImplementsTrait(a, TraitFromClass(TraitA)));
+}
 
 export async function debugTrait() {
   // await debugTrait1();
   // await debugTrait2();
-  await debugTrait3();
+  // await debugTrait3();
+  await debugTrait4();
 }

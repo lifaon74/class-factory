@@ -1,6 +1,6 @@
 import { Constructor, ExcludeConstructor } from './types/class-types';
 import { TupleToIntersection } from './types/misc-types';
-import { GetOwnPropertyDescriptors, ObjectHasOwnProperty } from './helpers';
+import { GetSafePropertyDescriptors, ObjectHasOwnProperty } from './helpers';
 
 
 export interface TClassTrait<GInstance> {
@@ -58,50 +58,50 @@ export type TTraitConstraint<GTrait> = {
 export const TRAITS = Symbol('traits');
 
 
-export function RegisterTraits(obj: any, traits: object[]): void {
+export function RegisterTrait(obj: any, trait: object): void {
   if (ObjectHasOwnProperty(obj, TRAITS)) {
-    const _traits: WeakSet<object> = obj[TRAITS];
-    for (let i = 0, l = traits.length; i < l; i++) {
-      _traits.add(traits[i]);
-    }
+    obj[TRAITS].add(trait);
   } else {
     Object.defineProperty(obj, TRAITS, {
-      value: new WeakSet<object>(traits),
+      value: new WeakSet<object>([trait]),
       writable: false,
       enumerable: false,
       configurable: false,
-    })
+    });
   }
 }
 
-export function ImplementTraits<GObject, GTraits extends object[]>(obj: GObject, traits: GTraits): (GObject & TMakeTraitsIntersection<GTraits>) {
-  RegisterTraits(obj, traits);
-
+export function RegisterTraits(obj: any, traits: object[]): void {
   for (let i = 0, l = traits.length; i < l; i++) {
-    const trait: object = traits[i];
-    if (
-      (trait !== null)
-      && (typeof trait === 'object')
-      && (Object.getPrototypeOf(trait) === Object.prototype)
-    ) {
-      const iterator: Iterator<[PropertyKey, PropertyDescriptor, Object]> = GetOwnPropertyDescriptors(trait);
-      let result: IteratorResult<[PropertyKey, PropertyDescriptor, Object]>;
-      while (!(result = iterator.next()).done) {
-        const [propertyKey, descriptor]: [PropertyKey, PropertyDescriptor] = result.value;
-        if ((propertyKey !== 'constructor') && (propertyKey !== TRAITS)) {
-          if (ObjectHasOwnProperty(obj, propertyKey)) {
-            throw new Error(`The property '${ String(propertyKey) }' is already implemented`);
-          } else {
-            Object.defineProperty(obj, propertyKey, descriptor);
-          }
-        }
+    RegisterTrait(obj, traits[i]);
+  }
+}
+
+
+export function ImplementTrait<GObject, GTrait extends object>(obj: GObject, trait: GTrait): (GObject & GTrait) {
+  const iterator: Iterator<[PropertyKey, PropertyDescriptor, Object]> = GetSafePropertyDescriptors(trait);
+  let result: IteratorResult<[PropertyKey, PropertyDescriptor, Object]>;
+  while (!(result = iterator.next()).done) {
+    const [propertyKey, descriptor, target]: [PropertyKey, PropertyDescriptor, Object] = result.value;
+    if (propertyKey !== TRAITS) {
+      if (ObjectHasOwnProperty(obj, propertyKey)) {
+        throw new Error(`The property '${ String(propertyKey) }' is already implemented`);
+      } else {
+        RegisterTrait(obj, target);
+        Object.defineProperty(obj, propertyKey, descriptor);
       }
-    } else {
-      throw new Error(`The trait must be a plain object`);
     }
   }
   return obj as any;
 }
+
+export function ImplementTraits<GObject, GTraits extends object[]>(obj: GObject, traits: GTraits): (GObject & TMakeTraitsIntersection<GTraits>) {
+  for (let i = 0, l = traits.length; i < l; i++) {
+    ImplementTrait(obj, traits[i]);
+  }
+  return obj as any;
+}
+
 
 
 export function SuperTraits<GTraits extends object[], GBaseClass extends (Constructor | void | undefined)>(traits: GTraits, baseClass?: GBaseClass): TMakeSuperTraitWithVoidAllowed<GTraits, GBaseClass> {
@@ -115,21 +115,17 @@ export function SuperTraits<GTraits extends object[], GBaseClass extends (Constr
 
 
 export function ImplementsTrait<GObject, GTrait extends object>(obj: GObject, trait: GTrait): obj is (GObject & GTrait) {
-  if (
-    (obj !== null)
-    && (typeof obj === 'object')
-  ) {
+  while (obj !== null) {
     if (
-      ObjectHasOwnProperty(obj, TRAITS)
-      && (obj[TRAITS] as WeakSet<object>).has(trait)
-    ) {
+        ObjectHasOwnProperty(obj, TRAITS)
+        && (obj[TRAITS] as WeakSet<object>).has(trait)
+      ) {
       return true;
     } else {
-      return ImplementsTrait<any, GTrait>(Object.getPrototypeOf(obj), trait);
+      obj = Object.getPrototypeOf(obj);
     }
-  } else {
-    return false;
   }
+  return false;
 }
 
 export function ImplementsTraits<GObject, GTraits extends object[]>(obj: GObject, traits: GTraits): obj is (GObject & TMakeTraitsIntersection<GTraits>) {
