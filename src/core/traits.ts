@@ -30,6 +30,29 @@ export type TMakeSuperTrait<GTraits extends object[], GBaseClass extends Constru
   new(...args: ConstructorParameters<GBaseClass>): TMakeSuperTraitInstance<GTraits, GBaseClass>;
 };
 
+export type TBaseClassIsUndefinedOrVoid<GBaseClass extends (Constructor | void | undefined)>
+  = [void] extends [GBaseClass]
+  ? true
+  : (
+    [undefined] extends [GBaseClass]
+      ? true
+      : false
+    );
+
+export type TMakeSuperTraitWithVoidAllowed<GTraits extends object[], GBaseClass extends (Constructor | void | undefined)> =
+  TBaseClassIsUndefinedOrVoid<GBaseClass> extends true
+    ? {
+      new(): TMakeTraitsIntersection<GTraits>;
+    }
+    : TMakeSuperTrait<GTraits, Exclude<GBaseClass, void>>;
+
+
+export type TTraitConstraint<GTrait> = {
+  [GKey in keyof GTrait]: GTrait[GKey] extends ((...args: any[]) => any)
+  ? object
+  : never;
+}
+
 
 
 export const TRAITS = Symbol('traits');
@@ -81,8 +104,11 @@ export function ImplementTraits<GObject, GTraits extends object[]>(obj: GObject,
 }
 
 
-export function SuperTrait<GTraits extends object[], GBaseClass extends Constructor>(traits: GTraits, baseClass: GBaseClass): TMakeSuperTrait<GTraits, GBaseClass> {
-  const TraitClass = class TraitClass extends baseClass {};
+export function SuperTraits<GTraits extends object[], GBaseClass extends (Constructor | void | undefined)>(traits: GTraits, baseClass?: GBaseClass): TMakeSuperTraitWithVoidAllowed<GTraits, GBaseClass> {
+  const TraitClass = (baseClass === void 0)
+    ? class TraitClass {}
+    : // @ts-ignore
+    class TraitClass extends baseClass {};
   ImplementTraits(TraitClass.prototype, traits);
   return TraitClass as any;
 }
@@ -119,6 +145,43 @@ export function TraitsFromClasses<GClassTraits extends TClassTrait<any>[]>(...cl
   return classTrait.map(TraitFromClass) as TInferClassTraits<GClassTraits>;
 }
 
+
+export function CallTraitMethodOrFallback<
+  GInstance,
+  GMethodName extends PropertyKey,
+  GArgs extends any[],
+  GReturn,
+  GTrait extends Record<GMethodName, (...args: GArgs) => GReturn>>(
+  instance: GInstance,
+  methodName: PropertyKey,
+  trait: GTrait,
+  args: GArgs,
+  fallback: (instance: GInstance, ...args: GArgs) => GReturn,
+): GReturn {
+  if (ImplementsTrait<GInstance, GTrait>(instance, trait)) {
+    return instance[methodName](...args);
+  } else {
+    return fallback(instance, ...args);
+  }
+}
+
+// export function CallTraitMethodOrFallback<
+//   GInstance,
+//   GMethodName extends PropertyKey,
+//   GMethod extends (...args: any[]) => any,
+//   GTrait extends Record<GMethodName, GMethod>>(
+//   instance: GInstance,
+//   methodName: PropertyKey,
+//   fallback: GMethod,
+//   trait: GTrait,
+//   args: Parameters<GMethod>,
+// ): ReturnType<GMethod> {
+//   if (ImplementsTrait<GInstance, GTrait>(instance, trait)) {
+//     return instance[methodName](...args);
+//   } else {
+//     return fallback();
+//   }
+// }
 
 
 
