@@ -1,6 +1,13 @@
 // kind of any, but different => sometimes better for inference
 export type Any = boolean | string | number | object | symbol | null | undefined | any[];
 
+export type TGenericFunction = (...args: any[]) => any;
+
+export type TInferFunctionThis<GFunction extends TGenericFunction> =
+  GFunction extends (this: infer GThis, ...args: any[]) => any
+    ? GThis
+    : never;
+
 // converts a tuple type (ex: [number, string]) to an union of types => 'number' | 'string'
 export type TupleTypes<T> = { [P in keyof T]: T[P] } extends { [key: number]: infer V } ? V : never; // type A = TupleTypes<[1, "hello", true]>; // === 1 | "hello" | true
 
@@ -9,6 +16,9 @@ export type UnionToIntersection<U> = (U extends any ? ((k: U) => void) : never) 
 
 // converts a tuple type to an intersections of these types
 export type TupleToIntersection<T> = UnionToIntersection<TupleTypes<T>>;
+
+export type UnionToObject<T extends [PropertyKey, any]> = { [key in T[0]]: Extract<T, [key, any]>[1] };
+
 
 // converts a pure tuple to an array like tuple
 export type TupleArray<TTuple extends any[], TArray> = Array<TArray> & TTuple;

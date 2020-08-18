@@ -2,6 +2,7 @@ import { Constructor, ExcludeConstructor } from './types/class-types';
 import { TupleToIntersection } from './types/misc-types';
 import { GetSafePropertyDescriptors, ObjectHasOwnProperty } from './helpers';
 
+export type TTraitFunction = (...args: any[]) => any;
 
 export interface TClassTrait<GInstance> {
   prototype: GInstance;
@@ -48,11 +49,28 @@ export type TMakeSuperTraitWithVoidAllowed<GTraits extends object[], GBaseClass 
 
 
 export type TTraitConstraint<GTrait> = {
-  [GKey in keyof GTrait]: GTrait[GKey] extends ((...args: any[]) => any)
+  [GKey in keyof GTrait]: GTrait[GKey] extends TTraitFunction
   ? object
   : never;
 }
 
+
+/*----------------------------*/
+
+export function ImplementTraitFunction<GObject, GPropertyKey extends PropertyKey, GFunction extends TTraitFunction>(
+  obj: GObject,
+  propertyKey: GPropertyKey,
+  fnc: GFunction,
+) {
+  if (ObjectHasOwnProperty(obj, propertyKey)) {
+    throw new Error(`The property '${ String(propertyKey) }' is already implemented`);
+  } else {
+    RegisterTrait(obj, target);
+    Object.defineProperty(obj, propertyKey, descriptor);
+  }
+}
+
+/*----------------------------*/
 
 
 export const TRAITS = Symbol('traits');

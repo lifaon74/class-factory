@@ -13,13 +13,17 @@ export function AbstractMethod(): PropertyDecorator {
       return {
         configurable: false,
         writable: false,
-        value: () => {
-          AbstractMethodCall(propertyKey);
-        }
+        value: CreateAbstractMethod(propertyKey),
       };
     } else {
       throw new TypeError(`@AbstractProperty: the property '${ String(propertyKey) }' should not be defined.`);
     }
+  };
+}
+
+export function CreateAbstractMethod(propertyKey?: PropertyKey): () => never {
+  return () => {
+    AbstractMethodCall(propertyKey);
   };
 }
 

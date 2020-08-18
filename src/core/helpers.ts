@@ -2,25 +2,90 @@ import { AbstractClass } from './types/class-types';
 import { SetInstanceOf } from './instance-of';
 
 
-export const EXCLUDED_PROPERTY_NAMES: Set<PropertyKey> = new Set<PropertyKey>(['prototype', 'constructor', ...GetOwnPropertyKeys(Object.prototype)]);
+/*---- OBJECT OPERATIONS ON OWN PROPERTIES ----*/
 
 /**
- * Returns the list of all own properties of an Object
+ * Returns the list of all own properties of an object
  */
-export function GetOwnPropertyKeys(target: Object): PropertyKey[] {
-  return (Object.getOwnPropertyNames(target) as PropertyKey[])
-    .concat(Object.getOwnPropertySymbols(target));
+export function GetOwnPropertyKeys<GTarget>(target: GTarget): (keyof GTarget)[] {
+  return (Object.getOwnPropertyNames(target) as (keyof GTarget)[])
+    .concat(Object.getOwnPropertySymbols(target) as (keyof GTarget)[]);
 }
 
+/**
+ * Returns true if 'target' has 'propertyKey' as own property
+ */
+export function HasOwnProperty<GTarget, GPropertyKey extends PropertyKey>(
+  target: GTarget,
+  propertyKey: GPropertyKey,
+): target is (GTarget & Record<GPropertyKey, any>) {
+  return Object.prototype.hasOwnProperty.call(target, propertyKey);
+}
 
+// export function IsPrototypeOf<GTarget, GPropertyKey extends PropertyKey>(
+//   target: GTarget,
+//   propertyKey: GPropertyKey,
+// ): target is (GTarget & Record<GPropertyKey, any>) {
+//   return Object.prototype.isPrototypeOf.call(target, propertyKey);
+// }
 
-export function * GetOwnPropertyDescriptors(target: Object): Generator<[PropertyKey, PropertyDescriptor, Object], void, void> {
-  const keys: PropertyKey[] = GetOwnPropertyKeys(target);
+/**
+ * Returns the list of all own descriptors of an object
+ */
+export function * GetOwnPropertyDescriptors<GTarget>(
+  target: GTarget
+): Generator<[keyof GTarget, PropertyDescriptor, Object], void, void> {
+  const keys: (keyof GTarget)[] = GetOwnPropertyKeys<GTarget>(target);
   for (let i = 0, l = keys.length; i < l; i++) {
-    const key: PropertyKey = keys[i];
+    const key: (keyof GTarget) = keys[i];
     yield [key, Object.getOwnPropertyDescriptor(target, key) as PropertyDescriptor, target];
   }
 }
+
+
+// list of property names that are common to every objects (should probably not be changed)
+export const PRIMITIVE_PROPERTY_NAMES = new Set<PropertyKey>(['prototype', 'constructor']);
+
+export function IsPrimitivePropertyName(name: PropertyKey): boolean {
+  return PRIMITIVE_PROPERTY_NAMES.has(name);
+}
+
+export function IsNotPrimitivePropertyName(name: PropertyKey): boolean {
+  return !IsPrimitivePropertyName(name);
+}
+
+
+/*---- PROTOTYPES CHAIN ----*/
+
+/**
+ * Returns the list of all prototypes of an object (includes object itself)
+ */
+export function * GetPrototypesChain(
+  target: any,
+): Generator<any, void, void> {
+  while (target !== null) {
+    yield target;
+    target = Object.getPrototypeOf(target);
+  }
+}
+
+// common (but non exhaustive) list of prototypes that are native to js
+export const PRIMITIVE_PROTOTYPES = new Set<any>(['', 0, {}, [], () => {}].map(_ => Object.getPrototypeOf(_)));
+
+export function IsPrimitivePrototype(proto: any): boolean {
+  return PRIMITIVE_PROTOTYPES.has(proto);
+}
+
+export function IsNotPrimitivePrototype(proto: any): boolean {
+  return !IsPrimitivePrototype(proto);
+}
+
+
+/*--*/
+
+
+
+export const EXCLUDED_PROPERTY_NAMES: Set<PropertyKey> = new Set<PropertyKey>(['prototype', 'constructor', ...GetOwnPropertyKeys(Object.prototype)]);
 
 /**
  * Returns all descriptors following prototype inheritance for a 'target'
@@ -55,7 +120,6 @@ export function * GetSafePropertyDescriptors(target: Object | null): Generator<[
     }
   }
 }
-
 
 
 /**
@@ -235,7 +299,10 @@ export function BindDescriptorOld(instance: object, key: PropertyKey, descriptor
 }
 
 
-export function ObjectHasOwnProperty<GObj extends any, GPropertyKey extends PropertyKey>(obj: GObj, propertyKey: GPropertyKey): obj is (GObj & { [GKey in GPropertyKey]: any }) {
-  return Object.prototype.hasOwnProperty.call(obj, propertyKey);
-}
+
+
+
+
+
+
 

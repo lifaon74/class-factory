@@ -1,6 +1,3 @@
-
-/***** MAKE *****/
-
 import { AbstractClass, Constructor } from './types/class-types';
 import {
   IMakeFactoryOptions, TMakeFactoryClass, TMakeFactoryCreateSuperClass, TMakeFactoryFactories
@@ -10,6 +7,9 @@ import { BaseClass } from './base-class';
 import {
   BindDescriptorOld, CopyClass, EXCLUDED_PROPERTY_NAMES, GetOwnPropertyKeys, GetPropertyDescriptors, SetClassName
 } from './helpers';
+
+/***** MAKE *****/
+
 
 /**
  * Creates a new class from :
