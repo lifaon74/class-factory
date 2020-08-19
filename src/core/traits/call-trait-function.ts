@@ -10,10 +10,10 @@ import { Trait } from './trait-class';
  */
 export function CallTraitFunctionAsMethod<GTraitFunction extends TraitFunction<PropertyKey, TGenericFunction>>(
   traitFunction: GTraitFunction,
-  target: TInferFunctionThis<TInferTraitFunctionFunction<any>>,
-  args: Parameters<TInferTraitFunctionFunction<any>>,
-): ReturnType<TInferTraitFunctionFunction<any>> {
-  if (traitFunction.isImplementedBy<TInferFunctionThis<TInferTraitFunctionFunction<any>>>(target)) {
+  target: TInferFunctionThis<TInferTraitFunctionFunction<GTraitFunction>>,
+  args: Parameters<TInferTraitFunctionFunction<GTraitFunction>>,
+): ReturnType<TInferTraitFunctionFunction<GTraitFunction>> {
+  if (traitFunction.isImplementedBy<TInferFunctionThis<TInferTraitFunctionFunction<GTraitFunction>>>(target)) {
     return (target as any)[traitFunction.propertyKey](...args);
   } else {
     return traitFunction.fnc.apply(target, args);

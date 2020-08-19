@@ -102,23 +102,24 @@ export function IsFunctionOrDerivedImplementedBy<GTarget, GPropertyKey extends P
   propertyKey: GPropertyKey,
   functionToTest: GFunction,
 ): target is TWithImplementedFunction<GTarget, GPropertyKey, GFunction> {
-  return (propertyKey in target)
-    && IsFunctionOrDerivedImplementedByAssumingPropertyExists<GTarget, GPropertyKey, GFunction>(target, propertyKey, functionToTest);
+  return (typeof (target as any)[propertyKey] === 'function')
+    && IsFunctionDerivedFrom((target as any)[propertyKey], functionToTest);
+    // && IsFunctionOrDerivedImplementedByAssumingPropertyExists<GTarget, GPropertyKey, GFunction>(target, propertyKey, functionToTest);
 }
 
-export function IsFunctionOrDerivedImplementedByAssumingPropertyExists<GTarget, GPropertyKey extends PropertyKey, GFunction extends TGenericFunction>(
-  target: GTarget,
-  propertyKey: GPropertyKey,
-  functionToTest: GFunction,
-): target is TWithImplementedFunction<GTarget, GPropertyKey, GFunction> {
-  return ((target as any)[propertyKey] === functionToTest)
-    || (
-      FUNCTION_TO_DERIVED_FUNCTIONS_MAP.has(functionToTest)
-        ? (FUNCTION_TO_DERIVED_FUNCTIONS_MAP.get(functionToTest) as TGenericFunction[])
-          .some((derivedFunction: TGenericFunction) => IsFunctionOrDerivedImplementedByAssumingPropertyExists<GTarget, GPropertyKey, TGenericFunction>(target, propertyKey, derivedFunction))
-        : false
-    );
-}
+// export function IsFunctionOrDerivedImplementedByAssumingPropertyExists<GTarget, GPropertyKey extends PropertyKey, GFunction extends TGenericFunction>(
+//   target: GTarget,
+//   propertyKey: GPropertyKey,
+//   functionToTest: GFunction,
+// ): target is TWithImplementedFunction<GTarget, GPropertyKey, GFunction> {
+//   return ((target as any)[propertyKey] === functionToTest)
+//     || (
+//       FUNCTION_TO_DERIVED_FUNCTIONS_MAP.has(functionToTest)
+//         ? (FUNCTION_TO_DERIVED_FUNCTIONS_MAP.get(functionToTest) as TGenericFunction[])
+//           .some((derivedFunction: TGenericFunction) => IsFunctionOrDerivedImplementedByAssumingPropertyExists<GTarget, GPropertyKey, TGenericFunction>(target, propertyKey, derivedFunction))
+//         : false
+//     );
+// }
 
 /**
  * Returns true if 'functionToTest' or any of it's parent functions is implemented by 'target'
@@ -128,6 +129,6 @@ export function IsFunctionOrParentImplementedBy<GTarget, GPropertyKey extends Pr
   propertyKey: GPropertyKey,
   functionToTest: GFunction,
 ): target is TWithImplementedFunction<GTarget, GPropertyKey, GFunction> {
-  return (propertyKey in target)
+  return (typeof (target as any)[propertyKey] === 'function')
     && IsFunctionDerivedFrom(functionToTest, (target as any)[propertyKey]);
 }
