@@ -1,7 +1,7 @@
-import { Constructor, ExcludeConstructor, TBaseClassIsUndefinedOrVoid } from '../types/class-types';
+import { Constructor, ExcludeConstructor, TBaseClassIsUndefinedOrVoid } from '../../types/class-types';
 import {
   TGenericTrait, TInferTraitTraitFunctions, TTraitFunctionUnionToTraitObject, TWithImplementedTrait
-} from './trait-class';
+} from './classes/trait-class';
 
 
 export type TSuperTraitInstance<GTrait extends TGenericTrait, GBaseClass extends Constructor> =

@@ -1,4 +1,4 @@
-import { TGenericFunction } from '../types/misc-types';
+import { TGenericFunction } from '../../../types/misc-types';
 
 /**
  * A derived function is simply a function which "extends" another.

@@ -4,5 +4,5 @@ export * from './factory';
 export * from './helpers';
 export * from './instance-of';
 export * from './private-members';
-export * from './traits/public';
+export * from './traits/bcp/public';
 export * from './decorators/public';

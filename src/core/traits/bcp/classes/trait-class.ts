@@ -1,5 +1,5 @@
-import { TGenericFunction, TInferFunctionThis, TupleTypes, UnionToObject } from '../types/misc-types';
-import { TGenericTraitFunction, TraitFunction } from './trait-function-class';
+import { TGenericFunction, TInferFunctionThis, TupleTypes, UnionToObject } from '../../../types/misc-types';
+import { TGenericTraitFunction, TraitFunction } from './trait-function/trait-function-class';
 
 
 /**

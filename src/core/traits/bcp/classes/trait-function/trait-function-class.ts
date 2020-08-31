@@ -1,10 +1,10 @@
-import { TGenericFunction, TInferFunctionThis } from '../types/misc-types';
+import { TGenericFunction, TInferFunctionThis } from '../../../../types/misc-types';
 import {
   GetImplementForOptionsConfigurable, GetImplementForOptionsEnumerable, GetImplementForOptionsWritable,
   IImplementForOptions, ImplementFunctionFor, IsFunctionOrDerivedImplementedBy, RegisterDerivedFunction,
   TWithImplementedFunction
-} from './pure-derivable-function';
-import { DerivableFunction, TDerivedFunctionConstraint } from './derivable-function-class';
+} from '../../functions/derived-function';
+import { DerivableFunction, TDerivedFunctionConstraint } from '../derivable-function-class';
 
 
 /**

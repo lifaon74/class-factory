@@ -1,6 +1,6 @@
-import { TGenericFunction, TInferFunctionThis } from '../types/misc-types';
-import { TInferTraitFunctionFunction, TraitFunction } from './trait-function-class';
-import { Trait } from './trait-class';
+import { TGenericFunction, TInferFunctionThis } from '../../types/misc-types';
+import { TInferTraitFunctionFunction, TraitFunction } from './classes/trait-function/trait-function-class';
+import { Trait } from './classes/trait-class';
 
 /**
  * Calls 'traitFunction' on 'target'

@@ -1,5 +1,5 @@
-import { TGenericFunction, TInferFunctionThis } from '../types/misc-types';
-import { IsFunctionDerivedFrom, RegisterDerivedFunction } from './pure-derivable-function';
+import { TGenericFunction, TInferFunctionThis } from '../../../types/misc-types';
+import { IsFunctionDerivedFrom, RegisterDerivedFunction } from '../functions/derived-function';
 
 /**
  * Simple wrapper around a pure derivable function

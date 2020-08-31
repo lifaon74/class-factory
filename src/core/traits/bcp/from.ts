@@ -1,9 +1,9 @@
 import {
   GetOwnPropertyDescriptors, GetPrototypesChain, IsNotPrimitivePropertyName, IsNotPrimitivePrototype
-} from '../helpers';
-import { TGenericFunction } from '../types/misc-types';
-import { TGenericTraitFunction, TraitFunction } from './trait-function-class';
-import { Trait } from './trait-class';
+} from '../../helpers';
+import { TGenericFunction } from '../../types/misc-types';
+import { TGenericTraitFunction, TraitFunction } from './classes/trait-function/trait-function-class';
+import { Trait } from './classes/trait-class';
 
 /**
  * Helpers function to generate Trait or TraitFunction
