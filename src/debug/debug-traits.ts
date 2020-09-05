@@ -1,25 +1,66 @@
-import { Method } from 'src/core/traits/method/class/method-class';
+import { Method } from '../core/traits/with-this-method/method/class/method-class';
+import { Trait } from '../core/traits/with-this-method/traits/class/trait-class';
 
-
-
-export async function debugTrait1() {
-  const hello = new Method({
+export async function debugMethod1() {
+  const helloMethod1 = new Method({
     propertyKey: 'hello',
-    value: function(this: { value: number }) {
+    value: function (this: { value: number }) {
       console.log('hello', this.value);
     }
+  });
+
+  const helloMethod2 = helloMethod1.derive(function (this: { value: number }) {
+    console.log('hello2', this.value);
   });
 
   const obj = {
     value: 10
   };
 
-  const b = hello.call(obj);
+  helloMethod1.call(obj);
 
-  // TODO missing methods and functions
+  const obj1 = helloMethod1.implementFor(obj);
+  obj1.hello();
+  console.log(helloMethod1.isImplementedBy(obj1));
+
+  const obj2 = helloMethod2.implementFor(obj);
+  obj2.hello();
+  console.log(helloMethod1.isImplementedBy(obj2));
+  console.log(helloMethod2.isImplementedBy(obj2));
+
+  console.log(helloMethod1.equals({
+    ...helloMethod1
+  }));
+}
+
+export async function debugTrait1() {
+  class traitClass1 {
+    method1() {
+      console.log('method1');
+    }
+  }
+
+  const trait1 = Trait.fromClass(traitClass1);
+
+  const obj = {
+    value: 10
+  };
+
+  // helloMethod.call(obj);
+
+  // const obj1 = trait1.implementFor(obj);
+  // obj1.method1();
+  //
+  // console.log(trait1.toClass());
+  //
+  // console.log(trait1.isImplementedBy(obj1));
+
+
+  // TODO missing methods and functions for trait
 }
 
 export async function debugTrait() {
-  await debugTrait1();
+  await debugMethod1();
+  // await debugTrait1();
 
 }
