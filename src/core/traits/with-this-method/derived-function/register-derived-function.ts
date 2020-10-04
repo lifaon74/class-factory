@@ -1,3 +1,6 @@
+import { TGenericFunction } from '../../../types/misc-types';
+
+
 /**
  * A derived function is simply a function which "extends" another.
  * This is mostly used when an object's method "extends/override" another.
@@ -6,9 +9,6 @@
  * function size(path: string): number { ... }
  * function sizeWithOptions(path: string, options?: TOptions): number { ... } => derived from previous one
  */
-import { TGenericFunction } from '../../../types/misc-types';
-
-
 
 export const DERIVED_FUNCTION_TO_FUNCTION_MAP = new WeakMap<TGenericFunction, TGenericFunction>(); // [derived, parent]
 

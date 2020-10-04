@@ -38,6 +38,8 @@ export type TMakeTypedConstructor<GTypedInstance, Args extends any[], GConstruct
   new(...args: Args): GTypedInstance;
 }
 
+export type TConstructorOrVoid = Constructor | void | undefined;
+
 export type TBaseClassIsUndefinedOrVoid<GBaseClass extends (Constructor | void | undefined)>
   = [void] extends [GBaseClass]
   ? true

@@ -1,0 +1,50 @@
+import { CreateAbstractMethodCallError } from '../../../class-helpers/abstract/create-abstract-method-error';
+import { Trait } from '../../trait/trait-class';
+
+export function __alloc__<GData, GThis extends GData>(data: GData, thisArg: GThis): GThis {
+  return Object.create(Object.getPrototypeOf(thisArg), Object.getOwnPropertyDescriptors(data));
+}
+
+export const ALLOC: unique symbol = Symbol('alloc');
+
+
+/**
+ * The <Alloc> trait is used to create a new object (or any value), initialized with some data
+ */
+export abstract class TraitAlloc<GData extends object = any, GThis extends (GData | unknown) = unknown> extends Trait {
+  [ALLOC](this: GThis, data: GData): GThis {
+    throw CreateAbstractMethodCallError('alloc');
+  }
+}
+
+/**
+ * An <Alloc> trait which returns 'data'
+ * INFO: use this one if you work directly with objects (implementTrait), and you don't want to keep inherited properties
+ */
+export abstract class TraitAllocNone<GData extends object = any> extends TraitAlloc<GData, GData> {
+  [ALLOC](data: GData): GData {
+    return data;
+  }
+}
+
+/**
+ * An <Alloc> trait which creates an object with 'this' as prototype (inherits 'this' properties),
+ * and reflects 'data' properties on it
+ * INFO: use this one if you work directly with objects (implementTrait)
+ */
+export abstract class TraitAllocFromThis<GData extends object = any, GThis extends (GData | unknown) = unknown> extends TraitAlloc<GData, GThis> {
+  [ALLOC](this: GThis, data: GData): GThis {
+    return Object.create(this, Object.getOwnPropertyDescriptors(data));
+  }
+}
+
+/**
+ * An <Alloc> trait which creates an object with the prototype of 'this' as prototype,
+ * and reflects 'data' properties on it
+ * INFO: use this one if you work with classes (mixTraits)
+ */
+export abstract class TraitAllocFromThisPrototype<GData extends object = any, GThis extends (GData | unknown) = unknown> extends TraitAlloc<GData, GThis> {
+  [ALLOC](this: GThis, data: GData): GThis {
+    return Object.create(Object.getPrototypeOf(this), Object.getOwnPropertyDescriptors(data));
+  }
+}
