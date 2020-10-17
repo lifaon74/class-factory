@@ -2,7 +2,7 @@ import { TraitArrayLike } from './trait-array-like';
 
 
 export abstract class TraitArrayJoin<GValue> extends TraitArrayLike<GValue> {
-  join(separator: string = ''): string {
+  join(separator: string = ','): string {
     let str: string = '';
     for (let i: number = 0, l = this.length(); i < l; i++) {
       if (i > 0) {

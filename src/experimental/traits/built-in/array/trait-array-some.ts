@@ -1,5 +1,5 @@
 import { TraitArrayLike } from './trait-array-like';
-import { TIterateFunction } from './trait-array-types';
+import { TIterateFunction } from './array-types';
 
 export abstract class TraitArraySome<GValue> extends TraitArrayLike<GValue> {
   some(callback: TIterateFunction<GValue, this, boolean>): boolean {

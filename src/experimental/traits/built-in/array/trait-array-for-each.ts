@@ -1,5 +1,7 @@
 import { TraitArrayLike } from './trait-array-like';
-import { TIterateFunction } from './trait-array-types';
+import { TIterateFunction } from './array-types';
+
+// TODO migrate to TraitIteratorForEach
 
 export abstract class TraitArrayForEach<GValue> extends TraitArrayLike<GValue> {
   // TODO: handle 'index' arg

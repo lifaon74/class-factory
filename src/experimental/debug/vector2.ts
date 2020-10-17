@@ -1,162 +1,160 @@
 import { TraitToString } from '../traits/built-in/others/trait-to-string';
-import { ALLOC, TraitAlloc, TraitAllocFromThisPrototype } from '../traits/built-in/others/trait-alloc';
-import { TraitSubtract } from '../traits/built-in/arithmetic/trait-subtract';
+import { NEW, TraitNew } from '../traits/built-in/others/trait-new';
+import { TraitSubtract } from '../traits/built-in/arithmetic/trait-subtract/trait-subtract';
 import { TraitNegate } from '../traits/built-in/arithmetic/trait-negate';
 import {
   callTraitMethodOnObject,
-  mixTraitsAsInterface,
-  mixTraitsAsUnion,
+  implementTraits,
+  mixTraitsWithConstructorTyping,
   traitIsImplementedBy,
 } from '../traits/public';
 import { TraitAdd } from '../traits/built-in/arithmetic/trait-add';
 import { Trait } from '../traits/trait/trait-class';
-// interface ITraitVector2AddMixedTraits extends TraitAdd<Vector2Struct, unknown>, TraitVector2Alloc {}
+import { TraitSubtractUsingAddAndNegate } from '../traits/built-in/arithmetic/trait-subtract/trait-subtract-using-add-and-negate';
+import { CallFunction } from '../function-helpers/call-function';
 
-// const symb = Symbol('symb');
-// class A {
-//   [symb]: number;
-// }
-//
-// const a: Pick<A, keyof A> = new A();
-// const b = a[symb]
+/** Vector2Struct **/
 
-
-// // const __a: TInferClassInstance<typeof Trait>;
-// const _a: TNormalizeTraitPrototype<A> = null as any;
-// const _b1: TInferClassInstance<typeof Trait> = null as any;
-// const _b2: TNormalizeTraitPrototypeKeys<A> = null as any;
-// // const _b3: Omit<TInferClassInstance<typeof Trait>, TNormalizeTraitPrototypeKeys<A>> = null as any;
-// const _b3: Omit<TInferClassInstance<typeof Trait>, 'a'> = null as any;
-// const _b3_1: keyof TInferClassInstance<typeof Trait> = null as any;
-// const _b3_2: Pick<TInferClassInstance<typeof Trait>, keyof TInferClassInstance<typeof Trait>> = null as any;
-// const _b4: TMixTraitsInterfaceWithBaseClassInstance<A, typeof Trait> = null as any;
-// // _b3.
-// _b3_2.
-//
-// const _b: TMixTraitsInterfaceWithBaseClass<A, typeof Trait> = null as any;
-// // const _b: TOmitPrototype<typeof Trait> & {prototype: {o: 'l' }} = null as any;
-// const _c: TMixTraitsInterfaceWithBaseClassConstructor<A, typeof Trait> = null as any;
-// // _b.prototype.
-// _c.prototype.prototype
-// // const _d: TMixTraitsInterfaceWithBaseClass<A, typeof Trait> = null as any;
-// // _d.prototype.
-//
-// // const _h: ExcludeConstructor<typeof Trait> = null as any;
-// const _h: Trait & Pick<typeof Trait, never> = null as any;
-//
-// // _b.prototype.
-// // const g = new _b();
-//
-// const _z: TMixTraitsInterfaceWithOptionalBaseClass<A, typeof Trait> = null as any;
-// // _z.prototype.
-// // const _a: Omit<Trait, TNormalizeTraitPrototypeKeys<A>>;
-//
-// const a = mixTraitsAsInterface<A, typeof Trait>([TraitAdd, TraitVector2Alloc], Trait);
-// const a = mixTraitsAsUnion([TraitAdd, TraitVector2Alloc], Trait);
-// const b = a.prototype;
-// const c = new a();
-
-
-//
-
-// const a = mixTraitsAsUnion([TraitAdd, TraitVector2Alloc], Trait);
-
-
-// abstract class TraitVector2Add extends mixTraitsAsInterface<ITraitVector2AddMixedTraits, typeof Trait>([TraitAdd, TraitVector2Alloc], Trait) {
-
-
-interface Vector2Struct {
+interface IVector2Struct {
   x: number;
   y: number;
 }
 
 
-abstract class TraitVector2ToString extends TraitToString {
-  toString(this: Vector2Struct): string {
-    return `vec2(${ this.x }, ${ this.y })`;
-  }
-}
-
-abstract class TraitVector2Alloc extends TraitAlloc<Vector2Struct> {
-}
-
-abstract class TraitVector2AllocFromThisPrototype extends TraitAllocFromThisPrototype<Vector2Struct, Vector2Struct, unknown> {
-}
-
-abstract class TraitVector2Length extends Trait {
-  length(this: Vector2Struct): number {
+abstract class TraitVector2StructLength extends Trait {
+  length(this: IVector2Struct): number {
     return Math.sqrt((this.x * this.x) + (this.y * this.y));
   }
 }
 
-abstract class TraitVector2Normalize extends TraitVector2Alloc {
-  normalize(this: Vector2Struct): this {
-    const length = callTraitMethodOnObject(TraitVector2Length, 'length', this, []);
-    return this[ALLOC]({
-      x: this.x / length,
-      y: this.y / length,
-    }) as this;
+abstract class TraitVector2StructToString extends TraitToString {
+  toString(this: IVector2Struct): string {
+    return `vec2(${ this.x }, ${ this.y })`;
   }
 }
 
-abstract class TraitVector2Add extends mixTraitsAsUnion([TraitAdd, TraitVector2Alloc], Trait) {
-  add(this: Vector2Struct & TraitVector2Alloc, value: Vector2Struct): this {
-    return this[ALLOC]({
+abstract class TraitVector2StructAdd extends TraitAdd<IVector2Struct, IVector2Struct> {
+  add(this: IVector2Struct, value: IVector2Struct): IVector2Struct {
+    return {
       x: this.x + value.x,
       y: this.y + value.y,
-    }) as this;
+    };
   }
 }
 
-abstract class TraitVector2AddSelf extends Trait {
-  addSelf(this: Vector2Struct, value: Vector2Struct): this {
+abstract class TraitVector2StructAddSelf extends Trait {
+  addSelf(this: IVector2Struct, value: IVector2Struct): IVector2Struct {
     this.x += value.x;
     this.y += value.y;
-    return this as any;
+    return this;
   }
 }
 
-abstract class TraitVector2Sub extends mixTraitsAsUnion([TraitSubtract, TraitVector2Alloc], Trait) {
-  subtract(this: Vector2Struct & TraitVector2Alloc, value: Vector2Struct): this {
-    return this[ALLOC]({
+abstract class TraitVector2StructSubtract extends TraitSubtract<IVector2Struct, IVector2Struct> {
+  subtract(this: IVector2Struct, value: IVector2Struct): IVector2Struct {
+    return {
       x: this.x - value.x,
       y: this.y - value.y,
-    }) as this;
+    };
   }
 }
 
-abstract class TraitVector2Negate extends mixTraitsAsUnion([TraitNegate, TraitVector2Alloc], Trait) {
-  negate(this: Vector2Struct): this {
-    return this[ALLOC]({
+abstract class TraitVector2StructSubtractUsingAddAndNegate extends TraitSubtractUsingAddAndNegate<IVector2Struct, IVector2Struct> {
+  subtract(this: TraitVector2StructAdd, value: TraitVector2StructNegate): IVector2Struct {
+    return CallFunction(super.subtract, this, [value]) as IVector2Struct;
+  }
+}
+
+abstract class TraitVector2StructNegate extends TraitNegate {
+  negate(this: IVector2Struct): IVector2Struct {
+    return {
       x: -this.x,
       y: -this.y,
-    }) as this;
+    };
   }
 }
 
-
-interface IVector2Trait extends TraitVector2Length,
-  TraitVector2Normalize,
-  TraitVector2Add,
-  TraitVector2Negate,
-  TraitVector2Sub,
-  TraitVector2ToString,
-  TraitVector2AddSelf,
-  TraitVector2AllocFromThisPrototype {
+abstract class TraitVector2StructNormalize extends Trait {
+  normalize(this: IVector2Struct): IVector2Struct {
+    const length: number = callTraitMethodOnObject(TraitVector2StructLength, 'length', this, []);
+    return {
+      x: this.x / length,
+      y: this.y / length,
+    };
+  }
 }
 
-const Vector2Trait = mixTraitsAsInterface<IVector2Trait, typeof Trait>([
-  TraitVector2Length,
-  TraitVector2Normalize,
-  TraitVector2Add,
-  TraitVector2Negate,
-  TraitVector2Sub,
-  TraitVector2ToString,
-  TraitVector2AddSelf,
-  TraitVector2AllocFromThisPrototype,
-]);
+/** Vector2 **/
 
-class Vector2 extends Vector2Trait implements Vector2Struct {
+interface IVector2 extends IVector2Struct,
+  TraitVector2StructLength,
+  TraitVector2StructToString,
+  TraitVector2New,
+  TraitVector2Add,
+  TraitVector2StructAddSelf,
+  // TraitVector2Subtract,
+  TraitVector2SubtractUsingAddAndNegate,
+  TraitVector2Negate,
+  TraitVector2Normalize {
+  addSelf(value: IVector2Struct): this;
+}
+
+interface IVector2TraitConstructor {
+  new(): IVector2;
+}
+
+type TVector2StructAndNew = IVector2Struct & TraitVector2New;
+
+abstract class TraitVector2New extends TraitNew {
+  [NEW](data: IVector2Struct): IVector2 {
+    return new Vector2(data.x, data.y);
+  }
+}
+
+abstract class TraitVector2Add extends TraitVector2StructAdd {
+  add(this: TVector2StructAndNew, value: IVector2Struct): IVector2 {
+    return this[NEW](CallFunction(super.add, this, [value]));
+  }
+}
+
+abstract class TraitVector2Subtract extends TraitVector2StructSubtract {
+  subtract(this: TVector2StructAndNew, value: IVector2Struct): IVector2 {
+    return this[NEW](CallFunction(super.subtract, this, [value]));
+  }
+}
+
+abstract class TraitVector2SubtractUsingAddAndNegate extends TraitVector2StructSubtractUsingAddAndNegate {
+  subtract(this: TraitVector2StructAdd, value: TraitVector2StructNegate): IVector2 {
+    return this[NEW](CallFunction(super.subtract, this, [value]));
+  }
+}
+
+abstract class TraitVector2Negate extends TraitVector2StructNegate {
+  negate(this: TVector2StructAndNew): IVector2 {
+    return this[NEW](CallFunction(super.negate, this,[]));
+  }
+}
+
+abstract class TraitVector2Normalize extends TraitVector2StructNormalize {
+  normalize(this: TVector2StructAndNew): IVector2 {
+    return this[NEW](CallFunction(super.normalize, this, []));
+  }
+}
+
+const Vector2Trait = mixTraitsWithConstructorTyping<IVector2TraitConstructor>([
+  TraitVector2StructLength,
+  TraitVector2StructToString,
+  TraitVector2New,
+  TraitVector2Add,
+  TraitVector2StructAddSelf,
+  TraitVector2Subtract,
+  // TraitVector2SubtractUsingAddAndNegate,
+  TraitVector2Negate,
+  TraitVector2Normalize,
+], Trait);
+
+
+class Vector2 extends Vector2Trait implements IVector2 {
   x: number;
   y: number;
 
@@ -167,24 +165,45 @@ class Vector2 extends Vector2Trait implements Vector2Struct {
   }
 }
 
-
-export async function debugVector2() {
-  const a = new Vector2(1, 2);
-  console.log(a.negate().toString());
-  console.log(a.addSelf(new Vector2(4, 5)).toString());
-  console.log(a.normalize());
+/*-------------------------*/
 
 
-  console.log(traitIsImplementedBy(TraitVector2AllocFromThisPrototype, a));
-  console.log(traitIsImplementedBy(Vector2, a));
+export async function debugVector2_1() {
+  const vec2 = Object.assign(Object.create(null), { x: 1, y: 1 }); // create an object which inherits from nothing
+  // const vec2 = { x: 1, y: 1 }; // NOPE because toString exists on Object.prototype
+
+  // implement the traits on vec2
+  implementTraits([TraitVector2StructLength, TraitVector2StructToString], vec2);
+
+  // now vec2 has the method .length()
+  console.log(vec2.length()); // 1.41...
+
+  // and .toString()
+  console.log(vec2.toString()); // 'vec2(1, 1)'
+
+  console.log(traitIsImplementedBy(TraitVector2StructLength, vec2)); // true
+}
+
+export async function debugVector2_2() {
+  const vec2 = new Vector2(1, 2);
+
+  console.log(vec2.length()); // 2.236...
+  console.log(vec2.add(new Vector2(3, 4)).add(new Vector2(5, 6)).toString()); // vec2(9, 12)
+
+  console.log(vec2.subtract(new Vector2(3, 4)).toString());
+
+  console.log(traitIsImplementedBy(Vector2Trait, vec2)); // true
+
+  console.log(traitIsImplementedBy(TraitVector2Add, vec2)); // true
+  console.log(traitIsImplementedBy(TraitVector2StructAdd, vec2)); // true
+  console.log(traitIsImplementedBy(TraitAdd, vec2)); // and also true
+
+  // console.log(vec2.normalize().negate().toString());
 
   (window as any).Vector2 = Vector2;
-  // const vecA$ = implementTraits([TraitVector2ToString, TraitVector2Negate, TraitVector2AllocFromThis] as (typeof TraitVector2ToString | typeof TraitVector2Negate | typeof TraitVector2AllocFromThis)[], vecA);
-  // console.log(vecA$.negate().toString());
+}
 
-  // console.log(traitIsImplementedBy(TraitVector2ToString, vecA));
-  // console.log(traitIsImplementedBy(TraitVector2New, vecA));
-  // console.log(traitIsImplementedBy(TraitVector2NewWithTraits, vecA));
-  //
-  // console.log(vecA$.toString());
+export async function debugVector2() {
+  // await debugVector2_1();
+  await debugVector2_2();
 }

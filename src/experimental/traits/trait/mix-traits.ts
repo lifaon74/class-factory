@@ -55,10 +55,10 @@ export type TMixTraitsAsUnionWithOptionalBaseClass<GTraitsUnion extends TGeneric
 /**
  * Creates a Trait based on the intersection of many other Traits
  */
-export function MixTraitsGeneric(
+export function MixTraits(
   traits: readonly TGenericTrait[],
   baseClass?: TClassOrVoid,
-): any {
+): unknown {
   const mixed: any = (
     (baseClass === void 0)
       ? class MixedTraits {
@@ -77,32 +77,45 @@ export function MixTraitsGeneric(
 
 /* TYPED */
 
+// INFO: sometimes typescript may struggle to infer properly the resulting mixed trait,
+//   so choose accordingly the implementation which fulfill your requirements
+//   the most accurate typing is: MixTraitsAsConstructor, but it's more verbose
+
+/**
+ * @example:
+ * interface MixedTraits<G> extends Trait1, Trait2, ... {}
+ * interface MixedTraitsConstructor extends Trait {
+ *  new<G>(): MixedTraits<G>;
+ * }
+ * MixTraitsWithConstructorTyping<MixedTraitsConstructor>([Trait1, Trait2], Trait)
+ */
+export function MixTraitsWithConstructorTyping<GConstructor extends TClassType>(
+  traits: readonly TGenericTrait[],
+  baseClass?: TClassOrVoid,
+): GConstructor {
+  return MixTraits(traits, baseClass) as GConstructor;
+}
 
 /**
  * @example:
  * interface MixedTraits extends Trait1, Trait2, ... {}
- * MixTraitsAsInterface<MixedTraits, void>([Trait1, Trait2])
+ * MixTraitsWithInterfaceTyping<MixedTraits, void>([Trait1, Trait2])
  */
-export function MixTraitsAsInterface<GInterface, GBaseClass extends TClassOrVoid>(
+export function MixTraitsWithInterfaceTyping<GInterface, GBaseClass extends TClassOrVoid>(
   traits: readonly TGenericTrait[],
   baseClass?: GBaseClass,
 ): TMixTraitsAsInterfaceWithOptionalBaseClass<GInterface, GBaseClass> {
-  return MixTraitsGeneric(traits, baseClass);
+  return MixTraits(traits, baseClass) as TMixTraitsAsInterfaceWithOptionalBaseClass<GInterface, GBaseClass>;
 }
-
-/*-*/
-
-// INFO: sometimes typescript may struggle to infer properly the resulting mixed trait,
-//   so choose accordingly the implementation which fulfill your requirements
 
 /**
  * @example:
- * MixTraitsAsUnion([Trait1, Trait2]) => automatic inference
- * MixTraitsAsUnion<typeof Trait1 | typeof Trait2, void>([Trait1, Trait2])
+ * MixTraitsWithUnionTyping([Trait1, Trait2]) => automatic inference
+ * MixTraitsWithUnionTyping<typeof Trait1 | typeof Trait2, void>([Trait1, Trait2])
  */
-export function MixTraitsAsUnion<GTraitsUnion extends TGenericTrait, GBaseClass extends TClassOrVoid>(
+export function MixTraitsWithUnionTyping<GTraitsUnion extends TGenericTrait, GBaseClass extends TClassOrVoid>(
   traits: readonly GTraitsUnion[],
   baseClass?: GBaseClass,
 ): TMixTraitsAsUnionWithOptionalBaseClass<GTraitsUnion, GBaseClass> {
-  return MixTraitsGeneric(traits, baseClass);
+  return MixTraits(traits, baseClass) as TMixTraitsAsUnionWithOptionalBaseClass<GTraitsUnion, GBaseClass>;
 }

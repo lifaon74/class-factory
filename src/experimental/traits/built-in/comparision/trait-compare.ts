@@ -1,7 +1,11 @@
 import { CreateAbstractMethodCallError } from '../../../class-helpers/abstract/create-abstract-method-error';
 import { Trait } from '../../trait/trait-class';
+import { ReflectTraitOnGlobalVariables } from '../../trait/trait-functions';
+import { TraitToString } from '../others/trait-to-string';
+import { ImplementTraitOnObject } from '../../trait/implement-trait-on-object';
+import { ImplementMethodOnObject } from '../../method/implement-method-on-object';
 
-export enum Ordering {
+export const enum Ordering {
   Less = -1,
   Equal = 0,
   Greater = 1,
@@ -30,3 +34,14 @@ export abstract class TraitCompare<GInput> extends Trait {
   }
 }
 
+/*---*/
+
+export abstract class TraitCompareNumber extends TraitCompare<number> {
+  compare(this: number, value: number): Ordering {
+    return compareNumber(this, value);
+  }
+}
+
+export function AddTraitCompareToNumber() {
+  ImplementTraitOnObject(TraitCompareNumber, Number.prototype);
+}

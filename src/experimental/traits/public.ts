@@ -8,8 +8,10 @@ export { ImplementTraitOnObject as implementTrait } from './trait/implement-trai
 export { ImplementTraitsOnObject as implementTraits } from './trait/implement-traits-on-object';
 export { TraitIsImplementedBy as traitIsImplementedBy } from './trait/trait-is-implemented-by';
 export {
-  MixTraitsAsUnion as mixTraitsAsUnion,
-  MixTraitsAsInterface as mixTraitsAsInterface,
+  MixTraits as mixTraits,
+  MixTraitsWithUnionTyping as mixTraitsWithUnionTyping,
+  MixTraitsWithInterfaceTyping as mixTraitsWithInterfaceTyping,
+  MixTraitsWithConstructorTyping as mixTraitsWithConstructorTyping,
 } from './trait/mix-traits';
 export {
   CallTraitMethod as callTraitMethod,

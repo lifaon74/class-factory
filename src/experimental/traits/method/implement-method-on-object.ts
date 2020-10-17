@@ -48,7 +48,7 @@ export function ImplementMethodOnObject<GMethod extends TGenericMethod, GTarget>
     case 'throw':
       throw new Error(`The property '${ String(propertyKey) }' is already implemented`);
     default:
-      throw new TypeError(`Invalid mode '${ String(propertyKey) }'`);
+      throw new TypeError(`Invalid mode '${ mode }'`);
   }
 
   return target as TWithImplementedMethod<GTarget, GMethod>;

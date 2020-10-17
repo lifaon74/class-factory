@@ -1,0 +1,224 @@
+import { TraitAllocFromThisPrototype } from '../traits/built-in/others/trait-alloc/trait-alloc-from-this-prototype';
+import { Trait } from '../traits/trait/trait-class';
+import { MixTraitsWithConstructorTyping } from '../traits/trait/mix-traits';
+import { CreatePrivateContext } from '../class-helpers/private/create-private-context';
+import { TraitIterator } from '../traits/built-in/iterator/sync/mixed/trait-iterator/trait-iterator';
+import { TraitIteratorForEachUsingNext } from '../traits/built-in/iterator/sync/trait-iterator-for-each/trait-iterator-for-each-using-next';
+import { ALLOC } from '../traits/built-in/others/trait-alloc/trait-alloc';
+import { TraitIteratorMap } from '../traits/built-in/iterator/sync/trait-iterator-map/trait-iterator-map';
+import { TraitIteratorNext } from '../traits/built-in/iterator/sync/trait-iterator-next/trait-iterator-next';
+import { IteratorMap, TIteratorMapCallback } from '../traits/built-in/iterator/sync/trait-iterator-map/iterator-map';
+import { TraitIteratorFilter } from '../traits/built-in/iterator/sync/trait-iterator-filter/trait-iterator-filter';
+import {
+  IteratorFilter,
+  TIteratorFilterCallback,
+} from '../traits/built-in/iterator/sync/trait-iterator-filter/iterator-filter';
+import { TraitIterable } from '../traits/built-in/iterator/sync/trait-iterable/trait-iterable';
+import { TraitIteratorToArrayUsingNext } from '../traits/built-in/iterator/sync/trait-iterator-to-array/trait-iterator-to-array-using-next';
+import { TIterable } from '../traits/built-in/iterator/sync/iterator-types';
+import { TraitIteratorTake } from '../traits/built-in/iterator/sync/trait-iterator-take/trait-iterator-take';
+import { IteratorTake } from '../traits/built-in/iterator/sync/trait-iterator-take/iterator-take';
+import { TraitIteratorDrop } from '../traits/built-in/iterator/sync/trait-iterator-drop/trait-iterator-drop';
+import { IteratorDrop } from '../traits/built-in/iterator/sync/trait-iterator-drop/iterator-drop';
+import { TraitIteratorAsIndexedPair } from '../traits/built-in/iterator/sync/trait-iterator-as-indexed-pair/trait-iterator-as-indexed-pair';
+import { IteratorAsIndexedPair } from '../traits/built-in/iterator/sync/trait-iterator-as-indexed-pair/iterator-as-indexed-pair';
+import { TraitIteratorReduceUsingNext } from '../traits/built-in/iterator/sync/trait-iterator-reduce/trait-iterator-reduce-using-next';
+import { TraitIteratorSomeUsingNext } from '../traits/built-in/iterator/sync/trait-iterator-some/trait-iterator-some-using-next';
+import { TraitIteratorEveryUsingNext } from '../traits/built-in/iterator/sync/trait-iterator-every/trait-iterator-every-using-next';
+import { TraitIteratorFindUsingNext } from '../traits/built-in/iterator/sync/trait-iterator-find/trait-iterator-find-using-next';
+
+
+/** STRUCTURE **/
+
+export const SUPER_ITERATOR_PRIVATE_CONTEXT: unique symbol = Symbol('super-iterator-private-context');
+
+export interface ISuperIteratorPrivateContext<GValue, GReturn, GNext> {
+  next: (...args: [] | [GNext]) => IteratorResult<GValue, GReturn>;
+  return?: (value?: GReturn) => IteratorResult<GValue, GReturn>;
+  throw?: (error?: any) => IteratorResult<GValue, GReturn>;
+}
+
+export interface SuperIteratorStruct<GValue, GReturn, GNext> {
+  readonly [SUPER_ITERATOR_PRIVATE_CONTEXT]: ISuperIteratorPrivateContext<GValue, GReturn, GNext>;
+}
+
+
+/** ALLOC **/
+
+// abstract class TraitSuperIteratorAllocFromThisPrototype<GValue, GReturn, GNext> extends TraitAllocFromThisPrototype<SuperIteratorStruct<GValue, GReturn, GNext>, SuperIteratorStruct<GValue, GReturn, GNext>, unknown> {
+// }
+
+export type TTraitSuperIteratorWithAllocAndStruct<GValue, GReturn, GNext> =
+  TraitSuperIteratorAllocFromThisPrototype<GValue, GReturn, GNext>
+  & SuperIteratorStruct<GValue, GReturn, GNext>;
+
+abstract class TraitSuperIteratorAllocFromThisPrototype<GValue, GReturn, GNext> extends TraitAllocFromThisPrototype<SuperIteratorStruct<GValue, GReturn, GNext>, object, unknown> {
+}
+
+export type TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext> =
+  TraitIteratorNext<GValue, GReturn, GNext>
+  & TraitSuperIteratorAllocFromThisPrototype<GValue, GReturn, GNext>
+  & SuperIteratorStruct<GValue, GReturn, GNext>;
+
+export function TraitReadonlyArrayAllocFromIterator<GValue, GReturn, GNext>(
+  instance: TTraitSuperIteratorWithNextAllocAndStruct<any, any, any>,
+  iterator: Iterator<GValue, GReturn, GNext>,
+): TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext> {
+  const data: SuperIteratorStruct<GValue, GReturn, GNext> = {} as any;
+  CreatePrivateContext(SUPER_ITERATOR_PRIVATE_CONTEXT, data, iterator);
+  return instance[ALLOC](data) as TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>;
+}
+
+
+/** METHODS **/
+
+export abstract class TraitSuperIteratorIterator<GValue, GReturn, GNext> extends TraitIterator<GValue, GReturn, GNext> {
+  next(this: SuperIteratorStruct<GValue, GReturn, GNext>, value: GNext): IteratorResult<GValue, GReturn> {
+    return this[SUPER_ITERATOR_PRIVATE_CONTEXT].next(value);
+  }
+
+  return(value?: GReturn): IteratorResult<GValue, GReturn> {
+    return this[SUPER_ITERATOR_PRIVATE_CONTEXT].return(value);
+  }
+
+  throw(error?: any): IteratorResult<GValue, GReturn> {
+    return this[SUPER_ITERATOR_PRIVATE_CONTEXT].throw(error);
+  }
+}
+
+export abstract class TraitSuperIteratorMap<GValue, GReturn, GNext> extends TraitIteratorMap<GValue, GReturn, GNext> {
+  map<GMappedValue>(
+    this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>,
+    callback: TIteratorMapCallback<GValue, GMappedValue>,
+  ): TTraitSuperIteratorWithNextAllocAndStruct<GMappedValue, GReturn, GNext> {
+    return TraitReadonlyArrayAllocFromIterator<GMappedValue, GReturn, GNext>(this, IteratorMap<GValue, GMappedValue, GReturn, GNext>(this, callback));
+  }
+}
+
+export abstract class TraitSuperIteratorFilter<GValue, GReturn, GNext> extends TraitIteratorFilter<GValue, GReturn, GNext> {
+  filter(
+    this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>,
+    callback: TIteratorFilterCallback<GValue>,
+  ): TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext> {
+    return TraitReadonlyArrayAllocFromIterator<GValue, GReturn, GNext>(this, IteratorFilter<GValue, GReturn, GNext>(this, callback));
+  }
+}
+
+export abstract class TraitSuperIteratorTake<GValue, GReturn, GNext> extends TraitIteratorTake<GValue, GReturn, GNext> {
+  take(
+    this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>,
+    limit: number,
+  ): TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext> {
+    return TraitReadonlyArrayAllocFromIterator<GValue, GReturn, GNext>(this, IteratorTake<GValue, GReturn, GNext>(this, limit));
+  }
+}
+
+export abstract class TraitSuperIteratorDrop<GValue, GReturn, GNext> extends TraitIteratorDrop<GValue, GReturn, GNext> {
+  drop(
+    this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>,
+    limit: number,
+  ): TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext> {
+    return TraitReadonlyArrayAllocFromIterator<GValue, GReturn, GNext>(this, IteratorDrop<GValue, GReturn, GNext>(this, limit));
+  }
+}
+
+export abstract class TraitSuperIteratorAsIndexedPair<GValue, GReturn, GNext> extends TraitIteratorAsIndexedPair<GValue, GReturn, GNext> {
+  asIndexedPair(this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>): TTraitSuperIteratorWithNextAllocAndStruct<[GValue, number], GReturn, GNext> {
+    return TraitReadonlyArrayAllocFromIterator<[GValue, number], GReturn, GNext>(this, IteratorAsIndexedPair<GValue, GReturn, GNext>(this));
+  }
+}
+
+export abstract class TraitSuperIteratorReduce<GValue, GReturn, GNext> extends TraitIteratorReduceUsingNext<GValue, GReturn, GNext> {
+}
+
+export abstract class TraitSuperIteratorToArray<GValue, GReturn, GNext> extends TraitIteratorToArrayUsingNext<GValue, GReturn, GNext> {
+}
+
+export abstract class TraitSuperIteratorForEach<GValue, GReturn, GNext> extends TraitIteratorForEachUsingNext<GValue, GReturn, GNext> {
+}
+
+export abstract class TraitSuperIteratorSome<GValue, GReturn, GNext> extends TraitIteratorSomeUsingNext<GValue, GReturn, GNext> {
+}
+
+export abstract class TraitSuperIteratorEvery<GValue, GReturn, GNext> extends TraitIteratorEveryUsingNext<GValue, GReturn, GNext> {
+}
+
+export abstract class TraitSuperIteratorFind<GValue, GReturn, GNext> extends TraitIteratorFindUsingNext<GValue, GReturn, GNext> {
+}
+
+export abstract class TraitSuperIteratorIterable<GValue, GReturn, GNext> extends TraitIterable<GValue, GReturn, GNext> {
+  [Symbol.iterator](this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>): TraitIteratorNext<GValue, GReturn, GNext> {
+    return this;
+  }
+}
+
+
+/** MIXED TRAITS **/
+
+export type ITraitSuperIteratorSuperTraitsWithStruct<GValue, GReturn, GNext> =
+  ITraitSuperIteratorSuperTraits<GValue, GReturn, GNext>
+  & SuperIteratorStruct<GValue, GReturn, GNext>;
+
+export interface ITraitSuperIteratorSuperTraits<GValue, GReturn, GNext> extends TraitSuperIteratorIterator<GValue, GReturn, GNext>,
+  TraitSuperIteratorMap<GValue, GReturn, GNext>,
+  TraitSuperIteratorFilter<GValue, GReturn, GNext>,
+  TraitSuperIteratorTake<GValue, GReturn, GNext>,
+  TraitSuperIteratorDrop<GValue, GReturn, GNext>,
+  TraitSuperIteratorAsIndexedPair<GValue, GReturn, GNext>,
+  TraitSuperIteratorReduce<GValue, GReturn, GNext>,
+  TraitSuperIteratorToArray<GValue, GReturn, GNext>,
+  TraitSuperIteratorForEach<GValue, GReturn, GNext>,
+  TraitSuperIteratorSome<GValue, GReturn, GNext>,
+  TraitSuperIteratorEvery<GValue, GReturn, GNext>,
+  TraitSuperIteratorFind<GValue, GReturn, GNext>,
+  TraitSuperIteratorIterable<GValue, GReturn, GNext>,
+  TraitSuperIteratorAllocFromThisPrototype<GValue, GReturn, GNext> {
+  map<GMappedValue>(this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>, callback: TIteratorMapCallback<GValue, GMappedValue>): ITraitSuperIteratorSuperTraitsWithStruct<GMappedValue, GReturn, GNext>;
+
+  filter(this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>, callback: TIteratorFilterCallback<GValue>): ITraitSuperIteratorSuperTraitsWithStruct<GValue, GReturn, GNext>;
+
+  take(this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>, limit: number): ITraitSuperIteratorSuperTraitsWithStruct<GValue, GReturn, GNext>;
+
+  drop(this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>, limit: number): ITraitSuperIteratorSuperTraitsWithStruct<GValue, GReturn, GNext>;
+
+  asIndexedPair(this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>): ITraitSuperIteratorSuperTraitsWithStruct<[GValue, number], GReturn, GNext>;
+
+  [Symbol.iterator](this: TTraitSuperIteratorWithNextAllocAndStruct<GValue, GReturn, GNext>): ITraitSuperIteratorSuperTraitsWithStruct<GValue, GReturn, GNext>;
+}
+
+export interface ITraitSuperIteratorSuperTraitsConstructor extends Trait {
+  new<GValue, GReturn, GNext>(): ITraitSuperIteratorSuperTraits<GValue, GReturn, GNext>;
+}
+
+export class TraitSuperIterator<GValue, GReturn, GNext> extends MixTraitsWithConstructorTyping<ITraitSuperIteratorSuperTraitsConstructor>([
+  TraitSuperIteratorIterator,
+  TraitSuperIteratorMap,
+  TraitSuperIteratorFilter,
+  TraitSuperIteratorTake,
+  TraitSuperIteratorDrop,
+  TraitSuperIteratorAsIndexedPair,
+  TraitSuperIteratorReduce,
+  TraitSuperIteratorToArray,
+  TraitSuperIteratorForEach,
+  TraitSuperIteratorSome,
+  TraitSuperIteratorEvery,
+  TraitSuperIteratorFind,
+  TraitSuperIteratorIterable,
+  TraitSuperIteratorAllocFromThisPrototype,
+], Trait)<GValue, GReturn, GNext> {
+}
+
+/** CLASS **/
+
+export class SuperIterator<GValue, GReturn, GNext> extends TraitSuperIterator<GValue, GReturn, GNext> implements SuperIteratorStruct<GValue, GReturn, GNext> {
+  static fromIterable<GValue, GReturn, GNext>(iterable: TIterable<GValue, GReturn, GNext>): SuperIterator<GValue, GReturn, GNext> {
+    return new SuperIterator<GValue, GReturn, GNext>(iterable[Symbol.iterator]());
+  }
+
+  readonly [SUPER_ITERATOR_PRIVATE_CONTEXT]: ISuperIteratorPrivateContext<GValue, GReturn, GNext>;
+
+  constructor(iterator: Iterator<GValue, GReturn, GNext>) {
+    super();
+    CreatePrivateContext(SUPER_ITERATOR_PRIVATE_CONTEXT, this, iterator);
+  }
+}
