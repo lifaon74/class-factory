@@ -1,7 +1,5 @@
 import { TGenericMethodStruct, TWithImplementedMethod } from '../method-types';
 import { IsFunctionDerivedFrom } from '../../derived-function/register-derived-function';
-import { TGenericFunction } from '../../../../types/misc-types';
-import { TWithImplementedFunction } from '../../../bcp/functions/derived-function';
 
 
 /**

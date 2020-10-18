@@ -11,6 +11,7 @@ import { TGenericFunction } from '../../../../types/misc-types';
 import { CallFunction } from '../../derived-function/call-function';
 import { CreateMethodDeriveMethodStruct } from './methods/method-derive';
 import { CreateMethodEqualsMethodStruct } from './methods/method-equals';
+import { CreateMethodIsDerivedFromMethodStruct } from './methods/method-is-derived-from';
 
 const MethodClassTrait: TMethodClassTypedTraitStruct<TGenericMethodStruct> = {
   methods: [
@@ -19,6 +20,7 @@ const MethodClassTrait: TMethodClassTypedTraitStruct<TGenericMethodStruct> = {
     CreateMethodEqualsMethodStruct(),
     CreateMethodImplementForMethodStruct(),
     CreateMethodIsImplementedByMethodStruct(),
+    CreateMethodIsDerivedFromMethodStruct(),
   ],
 };
 

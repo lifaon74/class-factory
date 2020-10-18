@@ -4271,6 +4271,11 @@ trim-newlines@^1.0.0:
   dependencies:
     glob "^7.1.2"
 
+ts-toolbelt@^8.0.4:
+  version "8.0.4"
+  resolved "https://registry.yarnpkg.com/ts-toolbelt/-/ts-toolbelt-8.0.4.tgz#db2f4a9b6e69d46a8c99e12c8ff63043b7f2bbf1"
+  integrity sha512-ug9shEyrhblB0mmVtFO6ZMdsKhFzjSmSVJJ24DRbTy3s4zrraEvQnE4sYvcVVszoSfQGHqOnWQMlse+b4U6yGA==
+
 tsc-watch@^4.2.3:
   version "4.2.3"
   resolved "https://registry.yarnpkg.com/tsc-watch/-/tsc-watch-4.2.3.tgz#630aaf1ed8bbfb6fbcbddb9bef96054bed217c4b"

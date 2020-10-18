@@ -93,5 +93,7 @@
     "typescript-tuple": "^2.2.1",
     "wait-on": "^4.0.2"
   },
-  "dependencies": {}
+  "dependencies": {
+    "ts-toolbelt": "^8.0.4"
+  }
 }

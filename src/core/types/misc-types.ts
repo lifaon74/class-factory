@@ -78,7 +78,6 @@ export type TObject = { [key in any]: any };
 // https://github.com/ksxnodemodules/typescript-tuple/blob/master/lib/utils.ts
 
 
-
 export type ToTuple<T> = {
   [K in Extract<keyof T, number>]: T[K];
 };
@@ -131,6 +130,16 @@ export type TupleShift<Tuple extends any[]> =
  */
 export type TupleUnshift<Tuple extends any[], Item> =
   ((first: Item, ...rest: Tuple) => any) extends ((...list: infer R) => any) ? R : never;
+
+
+export type TuplePop<Tuple extends any[]> =
+  Tuple extends []
+    ? never
+    : (
+      Tuple extends [...infer GFirstElements, last: any]
+        ? GFirstElements
+        : never
+      );
 
 /**
  * Reverses items of a tuple
@@ -292,16 +301,16 @@ export type IsUnion<T> =
 export type IsSingleton<T> =
   Clone<T> extends T
     ? [T] extends [UnionToIntersection<T>]
-      ? true
-      : false
+    ? true
+    : false
     : false;
 
 export type IsType<TargetType, T> =
   false extends (
       TargetType extends T
         ? T extends TargetType
-          ? true
-          : false
+        ? true
+        : false
         : false
       )
     ? false
