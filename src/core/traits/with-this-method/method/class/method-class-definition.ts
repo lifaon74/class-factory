@@ -8,6 +8,7 @@ import { TMethodCallTypedMethodStruct } from './methods/method-call';
 import { TGenericFunction } from '../../../../types/misc-types';
 import { TMethodDeriveTypedMethodStruct } from './methods/method-derive';
 import { TMethodEqualsTypedMethodStruct } from './methods/method-equals';
+import { TMethodIsDerivedFromTypedMethodStruct } from './methods/method-is-derived-from';
 
 
 export type TMethodClassTypedMethodsUnion<GThis extends TGenericMethodStruct> =
@@ -15,7 +16,8 @@ export type TMethodClassTypedMethodsUnion<GThis extends TGenericMethodStruct> =
   | TMethodDeriveTypedMethodStruct<GThis>
   | TMethodEqualsTypedMethodStruct<GThis>
   | TMethodImplementForTypedMethodStruct<GThis>
-  | TMethodIsImplementedByTypedMethodStruct<GThis>;
+  | TMethodIsImplementedByTypedMethodStruct<GThis>
+  | TMethodIsDerivedFromTypedMethodStruct<GThis>;
 
 export type TMethodClassTypedTraitStruct<GThis extends TGenericMethodStruct> = ITraitStruct<TMethodClassTypedMethodsUnion<GThis>>;
 

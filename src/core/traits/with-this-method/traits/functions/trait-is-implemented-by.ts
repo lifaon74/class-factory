@@ -1,5 +1,4 @@
 import { TGenericTraitStruct, TInferTraitMethods, TWithImplementedTrait } from '../trait-types';
-import { MethodImplementFor } from '../../method/functions/method-implement-for';
 import { CallFunction } from '../../derived-function/call-function';
 import { MethodIsImplementedBy } from '../../method/functions/method-is-implemented-by';
 
