@@ -16,8 +16,260 @@ import {
 import { generate } from 'astring';
 import { addForNumberStruct, INumberStruct, subtractForNumberStruct } from './examples/number-like';
 import { debugFunctionTraitPoint } from './examples/point2d';
+import { TClassType } from '../../types/class-types';
+import { TGenericFunction } from '../../types/function-types';
 
 
+/*----------------------*/
+
+/** CRAZINESS **/
+
+class GenericType {
+  readonly name: string;
+  readonly constraints: readonly Struct[];
+
+  constructor(
+    name: string,
+    constraints: readonly Struct[] = [],
+  ) {
+    this.name = name;
+    this.constraints = Object.freeze(Array.from(constraints));
+  }
+}
+
+type StructShape = {
+  [key: string]: any;
+};
+
+class Struct {
+  readonly generics: readonly GenericType[];
+
+  constructor(
+    name: string,
+    generics: Iterable<GenericType> = [],
+    shape: StructShape | ((...generics: readonly GenericType[]) => StructShape),
+  ) {
+    this.generics = Object.freeze(Array.from(generics));
+    // this.shape = shape;
+  }
+}
+
+const PointStruct = new Struct('PointStruct', [new GenericType('T')], (T: GenericType) => {
+  return {
+    x: T,
+    y: T,
+  };
+});
+
+
+class Type {
+  // readonly of: Struct;
+  // readonly generics: readonly (Type | GenericType)[];
+
+  constructor(
+
+  ) {
+
+  }
+}
+
+// class TypeDefinition {
+//   readonly generics: readonly GenericType[];
+//   readonly derivedFrom: Type | null;
+//
+//   constructor(
+//     generics: Iterable<Type> = [],
+//     derivedFrom: Type | null = null,
+//     shape:
+//   ) {
+//     this.generics = Object.freeze(Array.from(generics));
+//     this.derivedFrom = derivedFrom;
+//   }
+// }
+
+
+
+
+
+// class Type {
+//   readonly generics: readonly Type[];
+//   readonly derivedFrom: Type | null;
+//
+//   constructor(
+//     generics: Iterable<Type> = [],
+//     derivedFrom: Type | null = null,
+//   ) {
+//     this.generics = Object.freeze(Array.from(generics));
+//     this.derivedFrom = derivedFrom;
+//   }
+// }
+//
+// class TypedValue<GValue, GType extends Type> {
+//   readonly value: GValue;
+//   readonly type: GType;
+//
+//   constructor(
+//     value: GValue,
+//     type: GType,
+//   ) {
+//     this.value = value;
+//     this.type = type;
+//   }
+//
+//   castTo<GNewType extends Type>(newType: GNewType): TypedValue<GValue, GNewType> {
+//     return new TypedValue<GValue, GNewType>(this.value, newType);
+//   }
+// }
+//
+const NUMBER_TYPE = new Type();
+
+// export function GetTypeOf(
+//   input: any
+// ) {
+//
+// }
+
+/*----------------------*/
+
+export type TToStringFunction<GValue> = (a: GValue) => string;
+
+export type TInferToStringFunctionGGValue<GToStringFunction extends TToStringFunction<any>> =
+  GToStringFunction extends TToStringFunction<infer GValue>
+    ? GValue
+    : never;
+
+
+
+// export interface IFunction {
+//   name: string;
+//   argumentTypes: readonly TType[];
+//   implementation: TGenericFunction;
+// }
+
+type TFunctionOrArgumentsMap = Map<Type | undefined, TFunctionOrArgumentsMap | TGenericFunction>;
+
+const FUNCTIONS = new Map<string, TFunctionOrArgumentsMap>();
+
+
+
+export function TypedFunction<GFunction extends TGenericFunction>(
+  argumentTypes: readonly Type[],
+  fnc: GFunction,
+  functionName: string = fnc.name,
+): GFunction {
+  if (functionName === '') {
+    throw new Error(`The function must have a name`);
+  } else {
+    let functionOrArgumentsMap: TFunctionOrArgumentsMap;
+    if (FUNCTIONS.has(functionName)) {
+      functionOrArgumentsMap = FUNCTIONS.get(functionName) as TFunctionOrArgumentsMap;
+    } else {
+      functionOrArgumentsMap = new Map();
+      FUNCTIONS.set(functionName, functionOrArgumentsMap);
+    }
+
+    for (let i = 0, l = argumentTypes.length; i < l; i ++) {
+      const argumentType: Type = argumentTypes[i];
+      if (functionOrArgumentsMap.has(argumentType)) {
+        functionOrArgumentsMap = functionOrArgumentsMap.get(argumentType) as TFunctionOrArgumentsMap;
+      } else {
+        const childFunctionOrArgumentsMap = new Map();
+        functionOrArgumentsMap.set(argumentType, childFunctionOrArgumentsMap);
+        functionOrArgumentsMap = childFunctionOrArgumentsMap;
+      }
+    }
+
+    if (functionOrArgumentsMap.has(void 0)) {
+      console.log(`For arguments: `, argumentTypes);
+      console.log(fnc);
+      throw new Error(`A similar function as already been registered`);
+    } else {
+      functionOrArgumentsMap.set(void 0, fnc)
+    }
+  }
+  return fnc;
+}
+
+export function GetTypedFunction<GFunction extends TGenericFunction>(
+  functionName: string,
+  argumentTypes: readonly Type[],
+): GFunction | undefined {
+  let functionOrArgumentsMap: TFunctionOrArgumentsMap;
+  if (FUNCTIONS.has(functionName)) {
+    functionOrArgumentsMap = FUNCTIONS.get(functionName) as TFunctionOrArgumentsMap;
+
+    for (let i = 0, l = argumentTypes.length; i < l; i ++) {
+      const argumentType: Type = argumentTypes[i];
+      if (functionOrArgumentsMap.has(argumentType)) {
+        functionOrArgumentsMap = functionOrArgumentsMap.get(argumentType) as TFunctionOrArgumentsMap;
+      } else {
+        return void 0;
+      }
+    }
+
+    return functionOrArgumentsMap.get(void 0) as (GFunction | undefined);
+  } else {
+    return void 0;
+  }
+}
+
+export function GetTypedFunctionOrThrow<GFunction extends TGenericFunction>(
+  functionName: string,
+  argumentTypes: readonly Type[],
+): GFunction {
+  const result: GFunction | undefined = GetTypedFunction<GFunction>(functionName, argumentTypes);
+  if (result === void 0) {
+    throw new Error(`No function with the name '${ functionName }' and the arguments [${ argumentTypes.map(String).join(', ') }] has been found`);
+  } else {
+    return result;
+  }
+}
+
+
+
+/*---*/
+
+
+
+/*---*/
+
+
+// const NUMBER_TYPE = Symbol('number-type');
+
+TypedFunction([
+  NUMBER_TYPE,
+], function toString(a: number): string {
+  return a.toString(10);
+});
+
+
+
+const POINT2D_TYPE = new Type();
+
+interface IPoint2d<T> {
+  x: T;
+  y: T;
+}
+
+
+TypedFunction([
+  POINT2D_TYPE,
+], function toString<T>(a: IPoint2d<T>): string {
+  return `point2d(${ GetTypedFunctionOrThrow<(a: T) => string>('toString', [a.x]) })`;
+});
+
+
+
+export async function debugFunctionTraits2() {
+  console.log(FUNCTIONS);
+  console.log(GetTypedFunction('toString', []));
+  console.log(GetTypedFunction('toString', [NUMBER_TYPE]));
+}
+
+
+
+
+/*----------------------*/
 
 export async function debugFunctionTraitsPerf() {
   const num1: INumberStruct = { value: 1 };
@@ -308,7 +560,8 @@ export async function debugFunctionTraitsUnroll() {
 
 
 export async function debugFunctionTraits() {
-  await debugFunctionTraitPoint();
+  await debugFunctionTraits2();
+  // await debugFunctionTraitPoint();
   // await debugFunctionTraits1();
   // await debugFunctionTraitsUnroll();
   // await debugFunctionTraitsPerf();

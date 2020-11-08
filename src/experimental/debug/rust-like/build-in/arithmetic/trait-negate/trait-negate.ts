@@ -1,4 +1,4 @@
-import { Trait } from '../../../functions';
+import { Trait } from '../../../core/trait-decorator';
 
 @Trait()
 export abstract class TraitNegate<GSelf, GReturn = GSelf> {

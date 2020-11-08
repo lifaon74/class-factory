@@ -1,0 +1,348 @@
+
+// import { Observer } from './observer/class/observer-class';
+
+
+// https://github.com/lifaon74/observables/blob/dev-3.0-ts-4.0-support/src/core/observable/interfaces.ts
+// https://github.com/lifaon74/observables/tree/dev-3.0-ts-4.0-support/src/core/observable
+// https://github.com/lifaon74/observables/blob/dev-3.0-ts-4.0-support/src/core/observer/implementation.ts
+
+import { EventListener } from '../event-listener/class/event-listener-class';
+
+type OnEmit<GValue> = (value: GValue) => void;
+type TInferOnEmitGValue<GFunction extends OnEmit<any>> =
+  GFunction extends OnEmit<infer GValue>
+  ? GValue
+  : never;
+
+abstract class AbstractObserver<GValue> {
+  abstract readonly emit: OnEmit<GValue>;
+}
+
+class Observer<GValue> extends AbstractObserver<GValue> {
+  readonly emit: OnEmit<GValue>;
+
+  constructor(emit: OnEmit<GValue>) {
+    super();
+    this.emit = emit;
+  }
+}
+
+
+/*--*/
+
+
+interface IAbstractObservableEventMap<GValue> {
+  'add-observer': AbstractObserver<GValue>;
+  'remove-observer': AbstractObserver<GValue>;
+}
+
+abstract class AbstractObservable<GValue> extends EventListener<IAbstractObservableEventMap<GValue>> {
+
+  abstract getObservers(): readonly AbstractObserver<GValue>[];
+
+  abstract addObserver(observer: AbstractObserver<GValue>): this;
+
+  abstract removeObserver(observer: AbstractObserver<GValue>): this;
+
+  // pipeTo<GCallback extends OnEmit<GValue>>(callback: GCallback): Observer<GValue>;
+  // pipeTo<GObserver extends AbstractObserver<GValue>>(observer: GObserver): GObserver;
+  // pipeTo(observerOrCallback: any): AbstractObserver<GValue> {
+  //   const observer: AbstractObserver<GValue> = (typeof observerOrCallback === 'function')
+  //     ? new Observer<GValue>(observerOrCallback)
+  //     : observerOrCallback;
+  //   this.addObserver(observer);
+  //   return observer;
+  // }
+
+  pipeTo<GCallback extends OnEmit<GValue>>(callback: GCallback): Subscription<this, Observer<GValue>>;
+  pipeTo<GObserver extends AbstractObserver<GValue>>(observer: GObserver): Subscription<this, GObserver>;
+  pipeTo(observerOrCallback: any): Subscription<this, AbstractObserver<GValue>> {
+    const observer: AbstractObserver<GValue> = (typeof observerOrCallback === 'function')
+      ? new Observer<GValue>(observerOrCallback)
+      : observerOrCallback;
+    this.addObserver(observer);
+    return new Subscription<this, AbstractObserver<GValue>>(this, observer);
+  }
+
+  pipeThrough<GObservableObserver extends IObservableObserver<any, any>>(observableObserver: GObservableObserver): GObservableObserver['observable'] {
+    this.addObserver(observableObserver.observer);
+    return observableObserver.observable;
+  }
+
+  // subscribeTo(observer: AbstractObserver<GValue>): Subscription<GValue> {
+  //   return new Subscription<GValue>(this, observer);
+  // }
+}
+
+
+type ObservableEmitFunction<GValue> = (value: GValue) => void;
+type ObserverOnAddObserverHook<GValue> = (observer: AbstractObserver<GValue>) => void;
+type ObserverOnRemoveObserverHook<GValue> = (observer: AbstractObserver<GValue>) => void;
+interface ObservableHook<GValue> {
+  onAddObserver?: ObserverOnAddObserverHook<GValue>;
+  onRemoveObserver?: ObserverOnRemoveObserverHook<GValue>;
+}
+type ObservableCreateFunction<GValue> = (emit: ObservableEmitFunction<GValue>) => (void | ObservableHook<GValue>);
+
+class Observable<GValue> extends AbstractObservable<GValue> {
+  protected readonly _observers: AbstractObserver<GValue>[];
+  protected _onAddObserver: ObserverOnRemoveObserverHook<GValue>;
+  protected _onRemoveObserver: ObserverOnRemoveObserverHook<GValue>;
+
+  constructor(create?: ObservableCreateFunction<GValue>) {
+    super();
+    this._observers = [];
+    this._onAddObserver = () => {};
+    this._onRemoveObserver = () => {};
+    if (create !== void 0) {
+      const hook: ObservableHook<GValue> | void = create((value: GValue) => {
+        for (let i = 0, l = this._observers.length; i < l; i++) {
+          this._observers[i].emit(value);
+        }
+      });
+
+      if (hook !== void 0) {
+        if (hook.onAddObserver !== void 0) {
+          this._onAddObserver = hook.onAddObserver;
+        }
+        if (hook.onRemoveObserver !== void 0) {
+          this._onRemoveObserver = hook.onRemoveObserver;
+        }
+      }
+    }
+  }
+
+  getObservers(): readonly AbstractObserver<GValue>[] {
+    return this._observers;
+  }
+
+  addObserver(observer: AbstractObserver<GValue>): this {
+    this._observers.push(observer);
+    this._onAddObserver(observer);
+    return this;
+  }
+
+  removeObserver(observer: AbstractObserver<GValue>): this {
+    this._observers.splice(this._observers.indexOf(observer));
+    this._onRemoveObserver(observer);
+    return this;
+  }
+}
+
+/*--*/
+
+interface IObservableObserver<GObserver extends AbstractObserver<any>, GObservable extends AbstractObservable<any>> {
+  observer: GObserver;
+  observable: GObservable;
+}
+
+/*--*/
+
+class TimerObservable extends Observable<void> {
+  readonly timeout: number;
+
+  protected _timer: any | null;
+
+  constructor(timeout: number) {
+    super((emit: ObservableEmitFunction<void>) => {
+      return {
+        onAddObserver: () => {
+          if (this._timer === null) {
+            setInterval(emit, this.timeout);
+          }
+        },
+        onRemoveObserver: () => {
+          if (this.observers.length === 0) {
+            console.log('clear timer');
+            clearInterval(this._timer);
+            this._timer = null;
+          }
+        }
+      };
+    });
+    this.timeout = timeout;
+    this._timer = null;
+  }
+}
+
+// class TimerObservable extends Observable<void> {
+//   readonly timeout: number;
+//
+//   protected _timer: any | null;
+//
+//   constructor(timeout: number) {
+//     super();
+//     this.timeout = timeout;
+//     this._timer = null;
+//   }
+//
+//   addObserver(observer: AbstractObserver<void>): void {
+//     super.addObserver(observer);
+//     if (this._timer === null) {
+//       setInterval(() => {
+//         ObservableDispatchAll(this, void 0);
+//       }, this.timeout);
+//     }
+//   }
+//
+//   removeObserver(observer: AbstractObserver<void>): void {
+//     super.removeObserver(observer);
+//     if (this.observers.length === 0) {
+//       clearInterval(this._timer);
+//       this._timer = null;
+//     }
+//   }
+// }
+
+/*--*/
+
+class Subscription<GObservable extends AbstractObservable<any>, GObserver extends AbstractObserver<any>> {
+  readonly observable: GObservable;
+  readonly observer: GObserver;
+
+  protected _activated: boolean;
+
+  constructor(
+    observable: GObservable,
+    observer: GObserver,
+  ) {
+    this.observable = observable;
+    this.observer = observer;
+    this._activated = false;
+  }
+
+  isActivated(): boolean {
+    return this._activated;
+  }
+
+  activate(): this {
+    if (!this._activated) {
+      this._activated = true;
+      this.observable.addObserver(this.observer);
+    }
+    return this;
+  }
+
+  deactivate(): this {
+    if (this._activated) {
+      this._activated = false;
+      this.observable.removeObserver(this.observer);
+    }
+    return this;
+  }
+}
+
+/*--*/
+
+class MapPipe<GValueIn, GValueOut> {
+  readonly observer!: Observer<GValueIn>;
+  readonly observable: Observable<GValueOut>;
+
+  constructor(mapFunction: (value: GValueIn) => GValueOut) {
+    this.observable = new Observable<GValueOut>((emit: ObservableEmitFunction<GValueOut>) => {
+      (this.observer as Observer<GValueIn>) = new Observer((value: GValueIn) => {
+        emit(mapFunction(value));
+      });
+      return {
+        onAddObserver: () => {
+          if (this._timer === null) {
+            setInterval(emit, this.timeout);
+          }
+        },
+        onRemoveObserver: () => {
+          if (this.observers.length === 0) {
+            console.log('clear timer');
+            clearInterval(this._timer);
+            this._timer = null;
+          }
+        }
+      };
+    });
+  }
+}
+
+// class MapPipe<GValueIn, GValueOut> {
+//   readonly observer!: Observer<GValueIn>;
+//   readonly observable: Observable<GValueOut>;
+//
+//   constructor(mapFunction: (value: GValueIn) => GValueOut) {
+//     this.observable = new Observable<GValueOut>((emit: ObservableEmitFunction<GValueOut>) => {
+//       (this.observer as Observer<GValueIn>) = new Observer((value: GValueIn) => {
+//         emit(mapFunction(value));
+//       });
+//     });
+//   }
+// }
+
+export async function debugObserver1() {
+
+  const sub = new TimerObservable(500)
+    .pipeThrough(new MapPipe<void, number>(() => Math.random()))
+    .pipeTo(new Observer<number>((value: number) => {
+      console.log('receive', value);
+    }))
+    .activate();
+
+  setTimeout(() => sub.deactivate(), 2000);
+
+
+  // const sub1 = new Subscription<void>(observable1, observer1);
+  // sub1.activate();
+
+  // observable1.pipeTo(observer1);
+}
+
+// export async function debugObserver1() {
+//
+//   const observer1 = new Observer<number>((value: number) => {
+//     console.log('receive', value);
+//   });
+//
+//   console.log('isActivated', observer1.isActivated());
+//   observer1.emit(1);
+//   observer1.activate();
+//   console.log('isActivated', observer1.isActivated());
+//   observer1.emit(2);
+// }
+
+//
+// export async function debugObservable1() {
+//   console.log('debugObservable');
+//
+//   const observable1 = new Observable<number>((context: IObservableContext<number>) => {
+//     let timer: any;
+//     return {
+//       onObserved: () => {
+//         observer1.deactivate();
+//         console.log('onObserved');
+//         if (ObservableIsFreshlyObserved(context.getObservable())) {
+//           timer = setInterval(() => context.emit(Math.random()), 1000)
+//         }
+//       },
+//       onUnobserved: () => {
+//         console.log('onUnobserved');
+//         if (ObservableIsNotObserved(context.getObservable())) {
+//           clearInterval(timer);
+//         }
+//       }
+//     }
+//   });
+//
+//   const observer1 = new Observer<number>((value: number) => {
+//     console.log('receive', value);
+//   });
+//   observer1
+//     .observe(observable1)
+//     .activate();
+//
+//   // console.log(observable1);
+//   console.log(observer1);
+// }
+
+
+
+export async function debugObservable() {
+  await debugObserver1();
+  // await debugObservable1();
+}
+

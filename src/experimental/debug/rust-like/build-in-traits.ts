@@ -1,5 +1,5 @@
-import { Trait } from './functions';
 import { TraitToString } from './build-in/others/trait-to-string/trait-to-string';
+import { Trait } from './core/trait-decorator';
 
 
 /** TO STRING **/

@@ -1,4 +1,3 @@
-import { AssembleTraitImplementations, Impl } from '../functions';
 import { TraitToString } from '../build-in/others/trait-to-string/trait-to-string';
 import { ALLOC, TraitAlloc } from '../build-in/others/trait-alloc/trait-alloc';
 import { AllocFromThisPrototype } from '../../../traits/built-in/others/trait-alloc/trait-alloc-from-this-prototype';
@@ -6,6 +5,8 @@ import { TInferTraitAddGValue, TraitAdd } from '../build-in/arithmetic/trait-add
 import { TraitNegate } from '../build-in/arithmetic/trait-negate/trait-negate';
 import { TraitSubtractUsingAddAndNegate } from '../build-in/arithmetic/trait-subtract/trait-subtract-using-add-and-negate';
 import { TraitSubtract } from '../build-in/arithmetic/trait-subtract/trait-subtract';
+import { Impl } from '../core/implementation-decorator';
+import { AssembleTraitImplementations } from '../core/apply-trait-implementation';
 
 /** FAST COPY OF NUMBER LIKE FOR TESTS **/
 

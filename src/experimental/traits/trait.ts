@@ -1,6 +1,6 @@
 // import { debugVector2 } from '../debug/vector2';
 // import { debugTraitRustLike } from '../debug/rust-like/traits-rust-like';
-import { debugFunctionTraits } from '../debug/function-like/function-traits';
+import { debugTraitRustLike } from '../debug/rust-like/traits-rust-like';
 
 
 // export async function debugTrait1() {
@@ -45,8 +45,8 @@ import { debugFunctionTraits } from '../debug/function-like/function-traits';
 export async function debugTrait() {
   // await debugTrait1();
   // await debugVector2();
-  // await debugTraitRustLike();
-  await debugFunctionTraits();
+  await debugTraitRustLike();
+  // await debugFunctionTraits();
   // await debugReadonlyArrayTrait();
   // await debugIteratorTrait();
 }

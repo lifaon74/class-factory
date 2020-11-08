@@ -1,0 +1,218 @@
+import {
+  TGenericTraitIteratorNext,
+  TInferTraitIteratorNextGNext,
+  TInferTraitIteratorNextGValue,
+  TraitIteratorNext,
+} from '../build-in/iterator/sync/trait-iterator-next/trait-iterator-next';
+import { Impl } from '../core/implementation-decorator';
+import { TraitAs } from '../build-in/others/trait-as/trait-as';
+import { AssembleTraitImplementations } from '../core/apply-trait-implementation';
+import {
+  TGenericIterable,
+  TInferIterableGNext,
+  TInferIterableGReturn,
+  TInferIterableGValue,
+} from '../build-in/iterator/sync/iterator-types';
+import { VoidArgument } from '../../../types/void-argument';
+import { CreatePrivateContext } from '../../../class-helpers/private/create-private-context';
+import { TraitIterable } from '../build-in/iterator/sync/trait-iterable/trait-iterable';
+import { TraitIteratorMap } from '../build-in/iterator/sync/trait-iterator-map/trait-iterator-map';
+import { IteratorMap, TIteratorMapCallback } from '../build-in/iterator/sync/trait-iterator-map/iterator-map';
+import {
+  IteratorFilter,
+  TIteratorFilterCallback,
+} from '../build-in/iterator/sync/trait-iterator-filter/iterator-filter';
+import { TraitIteratorFilter } from '../build-in/iterator/sync/trait-iterator-filter/trait-iterator-filter';
+import { Trait } from '../core/trait-decorator';
+import { IteratorAsIndexedPair } from '../build-in/iterator/sync/trait-iterator-as-indexed-pair/iterator-as-indexed-pair';
+import { TraitIteratorAsIndexedPair } from '../build-in/iterator/sync/trait-iterator-as-indexed-pair/trait-iterator-as-indexed-pair';
+
+// export interface IIteratorStruct<GValue, GReturn, GNext> extends TraitIteratorNext<any, GValue, GReturn, GNext> {
+// }
+
+export const SUPER_ITERATOR_PRIVATE_CONTEXT: unique symbol = Symbol('super-iterator-private-context');
+
+export interface ISuperIteratorPrivateContext<GValue, GReturn, GNext> {
+  readonly next: TraitIteratorNext<any, GValue, GReturn, GNext>['next'];
+}
+
+export interface IIteratorStruct<GValue, GReturn, GNext> {
+  readonly [SUPER_ITERATOR_PRIVATE_CONTEXT]: ISuperIteratorPrivateContext<GValue, GReturn, GNext>;
+}
+
+
+export type TGenericIteratorStruct = IIteratorStruct<any, any, any>;
+
+export type TInferIteratorStructGValue<GIteratorStruct extends TGenericIteratorStruct> =
+  GIteratorStruct extends IIteratorStruct<infer GValue, any, any>
+    ? GValue
+    : never;
+
+
+export type TInferIteratorStructGReturn<GIteratorStruct extends TGenericIteratorStruct> =
+  GIteratorStruct extends IIteratorStruct<any, infer GReturn, any>
+    ? GReturn
+    : never;
+
+export type TInferIteratorStructGNext<GIteratorStruct extends TGenericIteratorStruct> =
+  GIteratorStruct extends IIteratorStruct<any, any, infer GNext>
+    ? GNext
+    : never;
+
+
+/** FOR ITERATOR STRUCT **/
+
+@Impl()
+export class ImplTraitAsForIteratorStruct<GSelf extends TGenericIteratorStruct> extends TraitAs<GSelf> {
+}
+
+@Impl()
+export class ImplTraitNextForIteratorStruct<GSelf extends TGenericIteratorStruct> extends TraitIteratorNext<GSelf, TInferIteratorStructGValue<GSelf>, TInferIteratorStructGReturn<GSelf>, TInferIteratorStructGNext<GSelf>> {
+  next(this: GSelf, ...value: VoidArgument<TInferIteratorStructGNext<GSelf>>): IteratorResult<TInferIteratorStructGValue<GSelf>, TInferIteratorStructGReturn<GSelf>> {
+    return this[SUPER_ITERATOR_PRIVATE_CONTEXT].next(...value);
+  }
+}
+
+@Impl()
+export class ImplTraitIterableForIteratorStruct<GSelf extends TGenericIteratorStruct> extends TraitIterable<GSelf, ISuperIteratorPrivateContext<TInferIteratorStructGValue<GSelf>, TInferIteratorStructGReturn<GSelf>, TInferIteratorStructGNext<GSelf>>> {
+  [Symbol.iterator](this: GSelf): ISuperIteratorPrivateContext<TInferIteratorStructGValue<GSelf>, TInferIteratorStructGReturn<GSelf>, TInferIteratorStructGNext<GSelf>> {
+    return this[SUPER_ITERATOR_PRIVATE_CONTEXT];
+  }
+}
+
+/** FOR SUPER ITERATOR **/
+
+@Impl()
+export class ImplTraitIterableForSuperIterator<GSelf extends TGenericSuperIterator> extends TraitIterable<GSelf, GSelf> {
+  [Symbol.iterator](this: GSelf): GSelf {
+    return this;
+  }
+}
+
+
+@Impl()
+export class ImplTraitIteratorAsIndexedPairForSuperIterator<GSelf extends TGenericSuperIterator> extends TraitIteratorAsIndexedPair<GSelf> {
+  asIndexedPair(
+    this: GSelf,
+  ): ISuperIterator<[TInferTraitIteratorNextGValue<GSelf>, number], void, TInferTraitIteratorNextGNext<GSelf>> {
+    return new SuperIterator<[TInferTraitIteratorNextGValue<GSelf>, number], void, TInferTraitIteratorNextGNext<GSelf>>(
+      IteratorAsIndexedPair<TInferTraitIteratorNextGValue<GSelf>, TInferIteratorStructGReturn<GSelf>, TInferTraitIteratorNextGNext<GSelf>>(this)
+    );
+  }
+}
+
+
+@Impl()
+export class ImplTraitIteratorFilterForSuperIterator<GSelf extends TGenericSuperIterator> extends TraitIteratorFilter<GSelf> {
+  filter(
+    this: GSelf,
+    callback: TIteratorFilterCallback<TInferTraitIteratorNextGValue<GSelf>>,
+  ): ISuperIterator<TInferTraitIteratorNextGValue<GSelf>, void, TInferTraitIteratorNextGNext<GSelf>> {
+    return new SuperIterator<TInferTraitIteratorNextGValue<GSelf>, void, TInferTraitIteratorNextGNext<GSelf>>(
+      IteratorFilter<TInferTraitIteratorNextGValue<GSelf>, TInferIteratorStructGReturn<GSelf>, TInferTraitIteratorNextGNext<GSelf>>(this, callback)
+    );
+  }
+}
+
+
+@Impl()
+export class ImplTraitIteratorMapForSuperIterator<GSelf extends TGenericSuperIterator> extends TraitIteratorMap<GSelf> {
+  map<GMappedValue>(
+    this: GSelf,
+    callback: TIteratorMapCallback<TInferTraitIteratorNextGValue<GSelf>, GMappedValue>,
+  ): ISuperIterator<GMappedValue, void, TInferTraitIteratorNextGNext<GSelf>> {
+    return new SuperIterator<GMappedValue, void, TInferTraitIteratorNextGNext<GSelf>>(
+      IteratorMap<TInferTraitIteratorNextGValue<GSelf>, GMappedValue, TInferIteratorStructGReturn<GSelf>, TInferTraitIteratorNextGNext<GSelf>>(this, callback)
+    );
+  }
+}
+
+
+/*---*/
+
+export interface ISuperIterator<GValue, GReturn, GNext> extends IIteratorStruct<GValue, GReturn, GNext>,
+  ImplTraitAsForIteratorStruct<ISuperIterator<GValue, GReturn, GNext>>,
+  ImplTraitNextForIteratorStruct<ISuperIterator<GValue, GReturn, GNext>>,
+  // ImplTraitIterableForSuperIterator<ISuperIterator<GValue, GReturn, GNext>>
+  ImplTraitIterableForIteratorStruct<ISuperIterator<GValue, GReturn, GNext>>,
+  ImplTraitIteratorAsIndexedPairForSuperIterator<ISuperIterator<GValue, GReturn, GNext>>,
+  ImplTraitIteratorFilterForSuperIterator<ISuperIterator<GValue, GReturn, GNext>>,
+  ImplTraitIteratorMapForSuperIterator<ISuperIterator<GValue, GReturn, GNext>>
+{
+}
+
+export type TGenericSuperIterator = ISuperIterator<any, any, any>;
+
+export type TInferSuperIteratorFromIterable<GIterable extends TGenericIterable> =
+  ISuperIterator<TInferIterableGValue<GIterable>, TInferIterableGReturn<GIterable>, TInferIterableGNext<GIterable>>;
+
+export interface IAssembledSuperIteratorImplementations {
+  new<GValue, GReturn, GNext>(): ISuperIterator<GValue, GReturn, GNext>;
+}
+
+export const SuperIteratorImplementationsCollection = [
+  ImplTraitAsForIteratorStruct,
+  ImplTraitNextForIteratorStruct,
+  // ImplTraitIterableForSuperIterator,
+  ImplTraitIterableForIteratorStruct,
+  ImplTraitIteratorAsIndexedPairForSuperIterator,
+  ImplTraitIteratorFilterForSuperIterator,
+  ImplTraitIteratorMapForSuperIterator,
+];
+
+const AssembledSuperIteratorImplementations = AssembleTraitImplementations<IAssembledSuperIteratorImplementations>(SuperIteratorImplementationsCollection);
+
+export class SuperIterator<GValue, GReturn, GNext> extends AssembledSuperIteratorImplementations<GValue, GReturn, GNext> implements ISuperIterator<GValue, GReturn, GNext> {
+
+  // static fromIterable<GValue, GReturn, GNext>(iterable: TIterable<GValue, GReturn, GNext>): ISuperIterator<GValue, GReturn, GNext> {
+  //   return new SuperIterator<GValue, GReturn, GNext>(iterable[Symbol.iterator]());
+  // }
+
+  static fromIterable<GIterable extends TGenericIterable>(
+    iterable: GIterable,
+  ): TInferSuperIteratorFromIterable<GIterable> {
+    return new SuperIterator<TInferIterableGValue<GIterable>, TInferIterableGReturn<GIterable>, TInferIterableGNext<GIterable>>(
+      iterable[Symbol.iterator](),
+    );
+  }
+
+  readonly [SUPER_ITERATOR_PRIVATE_CONTEXT]: ISuperIteratorPrivateContext<GValue, GReturn, GNext>;
+
+  constructor(input: Iterator<GValue, GReturn, GNext>) {
+    super();
+    CreatePrivateContext(SUPER_ITERATOR_PRIVATE_CONTEXT, this, input);
+  }
+}
+
+/*-----*/
+
+export async function debugTraitIterator() {
+  console.log('debugTraitIterator');
+
+  const testMethods = () => {
+    const iterable = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+
+    // TODO continue here => implement more Iterator methods
+
+    (window as any).SuperIterator = SuperIterator;
+
+    const r = SuperIterator.fromIterable(iterable)
+      // .asIndexedPair() // [[0, 0], [1, 1], ....]
+      // .filter((value: number) => (value > 1)) // [2, 3, ...]
+      .map((value: number) => (value * 2)) // [0, 2, 4, ..., 18]
+      // .take(7) // [0, 1, ..., 6]
+      // .drop(3) // [3, 4, ..., 9]
+      // .reduce((sum: number, value: number) => (sum + value), 0) // 45
+      // .toArray() // [0, 1, ..., 9]
+      // .forEach((value: any) => console.log(value)) // 0, 1, 2, ...
+      // .some((value: number) => (value > 5)) // true
+      // .every((value: number) => (value > 5)) // false
+      // .find((value: number) => (value > 5)) // 6
+    ;
+    console.log(r);
+    console.log(Array.from(r as any));
+  };
+
+  // testImplementation();
+  testMethods();
+}

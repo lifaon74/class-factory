@@ -1,4 +1,4 @@
-import { Trait } from '../../../functions';
+import { Trait } from '../../../core/trait-decorator';
 
 export const ALLOC = Symbol('alloc');
 

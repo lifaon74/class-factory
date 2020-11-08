@@ -136,7 +136,7 @@ export type TuplePop<Tuple extends any[]> =
   Tuple extends []
     ? never
     : (
-      Tuple extends [...infer GFirstElements, last: any]
+      Tuple extends [...infer GFirstElements, any]
         ? GFirstElements
         : never
       );

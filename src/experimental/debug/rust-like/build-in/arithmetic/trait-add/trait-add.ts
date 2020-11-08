@@ -1,4 +1,4 @@
-import { Trait } from '../../../functions';
+import { Trait } from '../../../core/trait-decorator';
 /*
 trait Add<Rhs=Self> {
     type Output;
